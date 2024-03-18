@@ -18,8 +18,8 @@ public class InMemoryTaskManagerTest {
     private static Task subtask1;
     private static Task subtask2;
     private static Task updateTask;
-    private static Task updateEpic;
-    private static Task updateSubtask;
+    private static Epic updateEpic;
+    private static Subtask updateSubtask;
     private static Task task;
 
     @BeforeAll
