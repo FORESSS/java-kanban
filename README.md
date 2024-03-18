@@ -1,2 +1,5 @@
-# java-kanban
-Repository for homework project.
+# Менеджер задач
+## Repository for homework project.
+- Выполнено финальное задание 4-го спринта
+- Выполнено финальное задание 5-го спринта
+- Выполнено финальное задание 6-го спринта
