@@ -1,6 +1,7 @@
 package ru.practicum.tasktracker.models;
 
 import ru.practicum.tasktracker.enums.Status;
+import ru.practicum.tasktracker.enums.Types;
 import ru.practicum.tasktracker.managers.InMemoryTaskManager;
 
 import java.util.Objects;
@@ -10,12 +11,14 @@ public class Task {
     private final String name;
     private final String description;
     private Status status;
+    protected Types type;
 
     public Task(String name, String description) {
         this.id = InMemoryTaskManager.getTaskCounter();
         this.name = name;
         this.description = description;
         this.status = Status.NEW;
+        this.type = Types.Task;
         InMemoryTaskManager.setTaskCounter(InMemoryTaskManager.getTaskCounter() + 1);
     }
 
@@ -24,6 +27,11 @@ public class Task {
         this.name = name;
         this.description = description;
         this.status = status;
+        this.type = Types.Task;
+    }
+
+    public Types getType() {
+        return type;
     }
 
     public int getId() {
@@ -61,8 +69,10 @@ public class Task {
 
     @Override
     public String toString() {
-        return "Task " +
-                "id:" + id + " " +
-                name + " " + status;
+        return id + ","
+                + type + ","
+                + name + ","
+                + status + ","
+                + description;
     }
 }

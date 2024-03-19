@@ -1,5 +1,6 @@
 package ru.practicum.tasktracker.managers;
 
+import ru.practicum.tasktracker.models.Epic;
 import ru.practicum.tasktracker.models.Subtask;
 import ru.practicum.tasktracker.models.Task;
 
@@ -24,9 +25,9 @@ public interface TaskManager {
 
     void updateTask(Task newTask);
 
-    void updateEpic(Task newTask);
+    void updateEpic(Epic newTask);
 
-    void updateSubtask(Task newTask);
+    void updateSubtask(Subtask newTask);
 
     void deleteTask(int id);
 
