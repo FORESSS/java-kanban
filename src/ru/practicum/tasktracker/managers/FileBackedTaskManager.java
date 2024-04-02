@@ -16,7 +16,7 @@ import java.util.List;
 
 public class FileBackedTaskManager extends InMemoryTaskManager {
     private final File autoSaveFile;
-    private static final File HISTORY_SAVE = new File("history.csv");
+    private static final File HISTORY_SAVE = new File("resources\\history.csv");
 
     public FileBackedTaskManager(File autoSave) {
         this.autoSaveFile = autoSave;

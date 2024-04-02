@@ -17,7 +17,7 @@ public class Task {
     private LocalDateTime startTime;
     private Duration duration;
     protected DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm dd.MM.yyyy");
-    protected LocalDateTime defaultDateTime = LocalDateTime.of(2000, 1, 1, 0, 0);
+    protected LocalDateTime defaultDateTime = LocalDateTime.of(3000, 1, 1, 0, 0);
 
     public Task(String name, String description) {
         this.name = name;
