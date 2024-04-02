@@ -52,6 +52,16 @@ public class InMemoryHistoryManager implements HistoryManager {
         }
     }
 
+    public void updateHistory(Task task) {
+        if (historyMap.containsKey(task.getId())) {
+            historyMap.get(task.getId()).data = getCopyTask(task);
+        }
+    }
+
+    private Task getCopyTask(Task task) {
+        return task.createCopyTask(task);
+    }
+
     @Override
     public void add(Task task) {
         if (task != null) {
