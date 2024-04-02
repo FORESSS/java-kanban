@@ -2,40 +2,52 @@ package ru.practicum.tasktracker.models;
 
 import ru.practicum.tasktracker.enums.Status;
 import ru.practicum.tasktracker.enums.Types;
-import ru.practicum.tasktracker.managers.InMemoryTaskManager;
 
+import java.time.Duration;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Objects;
 
 public class Task {
-    private final int id;
-    private final String name;
-    private final String description;
+    private int id;
+    private String name;
+    private String description;
     private Status status;
-    protected Types type;
+    private Types type;
+    private LocalDateTime startTime;
+    private Duration duration;
+    protected DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm dd.MM.yyyy");
+    protected LocalDateTime defaultDateTime = LocalDateTime.of(2000, 1, 1, 0, 0);
 
     public Task(String name, String description) {
-        this.id = InMemoryTaskManager.getTaskCounter();
         this.name = name;
         this.description = description;
         this.status = Status.NEW;
         this.type = Types.Task;
-        InMemoryTaskManager.setTaskCounter(InMemoryTaskManager.getTaskCounter() + 1);
     }
 
-    public Task(int id, String name, String description, Status status) {
+    public Task(String name, String description, LocalDateTime startTime, Duration duration) {
+        this(name, description);
+        this.startTime = startTime;
+        this.duration = duration;
+    }
+
+    public Task(int id, String name, String description, Status status, LocalDateTime startTime, Duration duration) {
         this.id = id;
         this.name = name;
         this.description = description;
         this.status = status;
+        this.startTime = startTime;
+        this.duration = duration;
         this.type = Types.Task;
-    }
-
-    public Types getType() {
-        return type;
     }
 
     public int getId() {
         return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
     }
 
     public String getName() {
@@ -52,6 +64,41 @@ public class Task {
 
     public void setStatus(Status status) {
         this.status = status;
+    }
+
+    public Types getType() {
+        return type;
+    }
+
+    public void setType(Types type) {
+        this.type = type;
+    }
+
+    public Task createCopyTask(Task task) {
+        Task newTask = new Task(task.getName(), task.getDescription(), getStartTime(), getDuration());
+        newTask.setId(task.getId());
+        newTask.setStatus(task.getStatus());
+        return newTask;
+    }
+
+    public LocalDateTime getStartTime() {
+        return startTime == null ? defaultDateTime : startTime;
+    }
+
+    public void setStartTime(LocalDateTime startTime) {
+        this.startTime = startTime;
+    }
+
+    public Duration getDuration() {
+        return duration == null ? Duration.ZERO : duration;
+    }
+
+    public void setDuration(Duration duration) {
+        this.duration = duration;
+    }
+
+    public LocalDateTime getEndTime() {
+        return getStartTime().plus(getDuration());
     }
 
     @Override
@@ -73,6 +120,10 @@ public class Task {
                 + type + ","
                 + name + ","
                 + status + ","
-                + description;
+                + description + ","
+                + "n/a" + ","
+                + getStartTime().format(formatter) + ","
+                + getEndTime().format(formatter) + ","
+                + getDuration().toMinutes();
     }
 }
