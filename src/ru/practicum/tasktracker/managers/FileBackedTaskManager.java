@@ -8,31 +8,34 @@ import ru.practicum.tasktracker.models.Subtask;
 import ru.practicum.tasktracker.models.Task;
 
 import java.io.*;
+import java.time.Duration;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
 public class FileBackedTaskManager extends InMemoryTaskManager {
     private final File autoSaveFile;
-    private static final File HISTORY_SAVE = new File("resources\\history.csv");
+    private static final File HISTORY_SAVE = new File("history.csv");
 
     public FileBackedTaskManager(File autoSave) {
         this.autoSaveFile = autoSave;
     }
 
     private void save() {
-        String title = "id,type,name,status,description,epic\n";
-        try (FileWriter fileWriter = new FileWriter(autoSaveFile)) {
-            fileWriter.write(title);
+        String title = "id,type,name,status,description,epic,startTime,endTime,duration(minutes)\n";
+        try (Writer writer = new FileWriter(autoSaveFile)) {
+            writer.write(title);
             for (Task task : getListOfAllTasks()) {
-                fileWriter.write(task + "\n");
+                writer.write(task + "\n");
             }
         } catch (IOException e) {
             throw new ManagerSaveException("Произошла ошибка во время записи файла: " + autoSaveFile);
         }
-        try (FileWriter fileWriter = new FileWriter(HISTORY_SAVE)) {
-            fileWriter.write(title);
+        try (Writer writer = new FileWriter(HISTORY_SAVE)) {
+            writer.write(title);
             for (Task task : historyManager.getHistory()) {
-                fileWriter.write(task + "\n");
+                writer.write(task + "\n");
             }
         } catch (IOException e) {
             throw new ManagerSaveException("Произошла ошибка во время записи файла: " + HISTORY_SAVE);
@@ -42,8 +45,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
 
     public static FileBackedTaskManager loadFromFile(File save) {
         FileBackedTaskManager fileBackedTaskManager = new FileBackedTaskManager(save);
-
-        try (FileReader reader = new FileReader(save);
+        try (Reader reader = new FileReader(save);
              BufferedReader br = new BufferedReader(reader)) {
             while (br.ready()) {
                 Task task = fromString(br.readLine());
@@ -52,8 +54,10 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
                         fileBackedTaskManager.epics.put(task.getId(), (Epic) task);
                     } else if (task instanceof Subtask) {
                         fileBackedTaskManager.subtasks.put(task.getId(), (Subtask) task);
+                        fileBackedTaskManager.prioritizedTasks.add(task);
                     } else {
                         fileBackedTaskManager.tasks.put(task.getId(), task);
+                        fileBackedTaskManager.prioritizedTasks.add(task);
                     }
                 }
             }
@@ -61,7 +65,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
             throw new ManagerLoadException("Произошла ошибка во время загрузки файла: " + save);
         }
 
-        try (FileReader reader = new FileReader(HISTORY_SAVE);
+        try (Reader reader = new FileReader(HISTORY_SAVE);
              BufferedReader br = new BufferedReader(reader)) {
             List<Task> listTasksFromHistory = new ArrayList<>();
             if (br.readLine() != null) {
@@ -80,6 +84,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
 
     public static Task fromString(String value) {
         Task task = null;
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm dd.MM.yyyy");
         if (Character.isDigit(value.charAt(0))) {
             String[] taskValues = value.split(",");
             int id = Integer.parseInt(taskValues[0]);
@@ -87,17 +92,20 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
             String name = taskValues[2];
             String description = taskValues[4];
             Status status = parseStatus(taskValues[3]);
+            LocalDateTime startTime = LocalDateTime.parse(taskValues[6], formatter);
+            LocalDateTime endTime = LocalDateTime.parse(taskValues[7], formatter);
+            Duration duration = Duration.ofMinutes(Integer.parseInt(taskValues[8]));
 
             switch (type) {
                 case "Task" -> {
-                    task = new Task(id, name, description, status);
+                    task = new Task(id, name, description, status, startTime, duration);
                 }
                 case "Epic" -> {
-                    task = new Epic(id, name, description, status);
+                    task = new Epic(id, name, description, status, startTime, endTime, duration);
                 }
                 case "Subtask" -> {
                     int epicId = Integer.parseInt(taskValues[5]);
-                    task = new Subtask(id, name, description, status, epicId);
+                    task = new Subtask(id, name, description, status, startTime, duration, epicId);
                 }
             }
         }
@@ -190,7 +198,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
     }
 
     @Override
-    public void deleteSubtask(int id) {
+    public void deleteSubtask(Integer id) {
         super.deleteSubtask(id);
         save();
     }
