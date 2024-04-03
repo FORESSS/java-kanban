@@ -6,7 +6,6 @@ import ru.practicum.tasktracker.managers.TaskManager;
 import ru.practicum.tasktracker.models.Epic;
 import ru.practicum.tasktracker.models.Subtask;
 import ru.practicum.tasktracker.models.Task;
-import ru.practicum.tasktracker.utils.Managers;
 
 import java.io.File;
 import java.time.Duration;
@@ -25,7 +24,7 @@ public class TaskTracker {
         manager.createEpic(epic1);
 
         Task subtask1 = new Subtask("4", "4", LocalDateTime.now(), Duration.ofMinutes(5));
-        Task subtask2 = new Subtask("5", "5", LocalDateTime.now().plusMinutes(5), Duration.ofMinutes(10));
+        Task subtask2 = new Subtask("5", "5");
         Task subtask3 = new Subtask("6", "6", LocalDateTime.now().minusMinutes(250), Duration.ofMinutes(7));
         manager.createSubtask(subtask1);
         manager.createSubtask(subtask2);
@@ -36,10 +35,11 @@ public class TaskTracker {
         manager.getTask(2);
         manager.getEpic(3);
         manager.getSubtask(5);
+        manager.getTask(2);
 
-        manager.updateSubtask(new Subtask(4, "56566", "555", Status.DONE, LocalDateTime.now(), Duration.ofMinutes(4), 3));
-        manager.updateSubtask(new Subtask(5, "5", "5", Status.DONE, LocalDateTime.now().plusMinutes(5), Duration.ofMinutes(10), 3));
-        manager.updateSubtask(new Subtask(6, "56566", "555", Status.DONE, LocalDateTime.now().minusMinutes(250), Duration.ofMinutes(7), 3));
+        manager.updateSubtask(new Subtask(4, "4", "4", Status.DONE, LocalDateTime.now(), Duration.ofMinutes(4), 3));
+        // manager.updateSubtask(new Subtask(5, "5", "5", Status.DONE, LocalDateTime.now().plusMinutes(5), Duration.ofMinutes(10), 3));
+        manager.updateSubtask(new Subtask(6, "6", "6", Status.DONE, LocalDateTime.now().minusMinutes(250), Duration.ofMinutes(7), 3));
 
         System.out.println(manager.getListOfAllTasks());
         System.out.println(manager.getHistoryManager().getHistory());
