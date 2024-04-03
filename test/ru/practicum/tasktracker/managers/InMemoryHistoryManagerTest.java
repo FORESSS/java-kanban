@@ -27,10 +27,9 @@ public class InMemoryHistoryManagerTest {
         taskManager.getTask(task.getId());
         taskManager.updateTask(newTask);
         taskManager.getTask(task.getId());
-        taskManager.createEpic(new Epic(555, "555", "555"));
+        taskManager.createEpic(new Epic(555, "555", "555", Status.NEW));
         taskManager.getEpic(555);
     }
-
 
     @Test
     void tasksShouldBeAddedToHistory() {

@@ -31,10 +31,9 @@ class FileBackedTaskManagerTest {
         manager = new FileBackedTaskManager(testFile);
 
         task = new Task(123, "task", "123", Status.NEW);
-        epic = new Epic(456, "epic", "456");
+        epic = new Epic("epic", "456");
         subtask1 = new Subtask(787, "subtask1", "787", Status.NEW);
         subtask2 = new Subtask(788, "subtask2", "788", Status.NEW);
-
         manager.createTask(task);
         manager.createEpic(epic);
         manager.createSubtask(subtask1);
@@ -61,11 +60,10 @@ class FileBackedTaskManagerTest {
     @Test
     void fromString() throws IOException {
         FileBackedTaskManager loadManager = FileBackedTaskManager.loadFromFile(testFile);
-        FileReader reader = new FileReader(testFile);
-        BufferedReader br = new BufferedReader(reader);
-        while (br.ready()) {
-            if (Character.isDigit(br.readLine().charAt(0))) {
-                assertNotNull(loadManager.fromString(br.readLine()));
+        BufferedReader reader = new BufferedReader(new FileReader(testFile));
+        while (reader.ready()) {
+            if (Character.isDigit(reader.readLine().charAt(0))) {
+                assertNotNull(loadManager.fromString(reader.readLine()));
             }
         }
     }

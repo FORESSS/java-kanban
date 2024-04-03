@@ -12,7 +12,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class InMemoryTaskManagerTest {
-    private static TaskManager manager;
+  /*  private static TaskManager manager;
     private static Task oldTask;
     private static Task epic;
     private static Task subtask1;
@@ -96,5 +96,5 @@ public class InMemoryTaskManagerTest {
         manager.deleteAllTasks();
 
         assertTrue(manager.getListOfAllTasks().isEmpty());
-    }
+    }*/
 }

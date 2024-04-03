@@ -1,5 +1,1 @@
 id,type,name,status,description,epic,startTime,endTime,duration(minutes)
-2,Task,456,NEW,456,n/a,23:59 31.12.+999999999,23:59 31.12.+999999999,0
-5,Subtask,5,DONE,5,3,16:36 03.04.2024,16:46 03.04.2024,10
-3,Epic,987,DONE,987,n/a,12:21 03.04.2024,16:46 03.04.2024,21
-1,Task,123,NEW,123,n/a,18:31 03.04.2024,18:51 03.04.2024,20
