@@ -10,20 +10,26 @@ import java.util.Objects;
 
 public class Task {
     private int id;
-    private String name;
-    private String description;
+    private final String name;
+    private final String description;
     private Status status;
     private Types type;
     private LocalDateTime startTime;
     private Duration duration;
-    protected DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm dd.MM.yyyy");
-    protected LocalDateTime defaultDateTime = LocalDateTime.of(3000, 1, 1, 0, 0);
+    protected final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm dd.MM.yyyy");
+    protected final LocalDateTime defaultDateTime = LocalDateTime.MAX;
 
     public Task(String name, String description) {
         this.name = name;
         this.description = description;
         this.status = Status.NEW;
         this.type = Types.Task;
+    }
+
+    public Task(int id, String name, String description, Status status) {
+        this(name, description);
+        this.id = id;
+        this.status = status;
     }
 
     public Task(String name, String description, LocalDateTime startTime, Duration duration) {
@@ -75,10 +81,8 @@ public class Task {
     }
 
     public Task createCopyTask(Task task) {
-        Task newTask = new Task(task.getName(), task.getDescription(), getStartTime(), getDuration());
-        newTask.setId(task.getId());
-        newTask.setStatus(task.getStatus());
-        return newTask;
+        return new Task(task.getId(), task.getName(), task.getDescription(),
+                task.getStatus(), task.getStartTime(), task.getDuration());
     }
 
     public LocalDateTime getStartTime() {
@@ -99,6 +103,10 @@ public class Task {
 
     public LocalDateTime getEndTime() {
         return getStartTime().plus(getDuration());
+    }
+
+    public LocalDateTime getDefaultDateTime() {
+        return defaultDateTime;
     }
 
     @Override

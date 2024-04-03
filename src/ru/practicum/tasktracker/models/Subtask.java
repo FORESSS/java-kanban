@@ -14,6 +14,11 @@ public class Subtask extends Task {
         setType(Types.Subtask);
     }
 
+    public Subtask(int id, String name, String description, Status status) {
+        super(id, name, description, status);
+        setType(Types.Subtask);
+    }
+
     public Subtask(String name, String description, LocalDateTime startTime, Duration duration) {
         super(name, description, startTime, duration);
         setType(Types.Subtask);
@@ -35,11 +40,8 @@ public class Subtask extends Task {
 
     @Override
     public Task createCopyTask(Task task) {
-        Subtask newSubtask = new Subtask(task.getName(), task.getDescription(), getStartTime(), getDuration());
-        newSubtask.setId(task.getId());
-        newSubtask.setStatus(task.getStatus());
-        newSubtask.setEpicId(((Subtask) task).getEpicId());
-        return newSubtask;
+        return new Subtask(task.getId(), task.getName(), task.getDescription(),
+                task.getStatus(), getStartTime(), getDuration(), getEpicId());
     }
 
     @Override
