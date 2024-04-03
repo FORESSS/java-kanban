@@ -1,13 +1,16 @@
 package ru.practicum.tasktracker.managers;
+
 import ru.practicum.tasktracker.enums.Status;
 import ru.practicum.tasktracker.exceptions.IntersectDurationTaskException;
 import ru.practicum.tasktracker.models.Epic;
 import ru.practicum.tasktracker.models.Subtask;
 import ru.practicum.tasktracker.models.Task;
 import ru.practicum.tasktracker.utils.Managers;
+
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.*;
+
 public class InMemoryTaskManager implements TaskManager {
     protected static int id = 1;
     protected final Map<Integer, Task> tasks = new HashMap<>();
@@ -15,18 +18,22 @@ public class InMemoryTaskManager implements TaskManager {
     protected final Map<Integer, Subtask> subtasks = new HashMap<>();
     protected final HistoryManager historyManager = Managers.getDefaultHistory();
     protected final Set<Task> prioritizedTasks = new TreeSet<>(Comparator.comparing(Task::getStartTime));
+
     public InMemoryTaskManager() {
     }
+
     @Override
     public HistoryManager getHistoryManager() {
         return historyManager;
     }
+
     @Override
     public List<Task> getPrioritizedTasks() {
         return prioritizedTasks.stream()
                 .filter(task -> !task.getStartTime().equals(task.getDefaultDateTime()))
                 .toList();
     }
+
     @Override
     public void createTask(Task task) {
         if (task != null && !tasks.containsKey(task.getId())
@@ -37,6 +44,7 @@ public class InMemoryTaskManager implements TaskManager {
             prioritizedTasks.add(task);
         }
     }
+
     @Override
     public void createEpic(Task task) {
         if (task instanceof Epic && !tasks.containsKey(task.getId())
@@ -45,6 +53,7 @@ public class InMemoryTaskManager implements TaskManager {
             epics.put(task.getId(), (Epic) task);
         }
     }
+
     @Override
     public void createSubtask(Task task) {
         if (task instanceof Subtask && !tasks.containsKey(task.getId())
