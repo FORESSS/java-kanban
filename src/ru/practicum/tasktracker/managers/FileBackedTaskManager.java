@@ -11,32 +11,48 @@ import java.io.*;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 public class FileBackedTaskManager extends InMemoryTaskManager {
-    private final File autoSaveFile;
+    private final File dataSave;
     private static final File HISTORY_SAVE = new File("resources\\history.csv");
+    private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("HH:mm dd.MM.yyyy");
 
-    public FileBackedTaskManager(File autoSave) {
-        this.autoSaveFile = autoSave;
+    public FileBackedTaskManager(File dataSave) {
+        this.dataSave = dataSave;
     }
 
     private void save() {
         String title = "id,type,name,status,description,epic,startTime,endTime,duration(minutes)\n";
-        try (Writer writer = new FileWriter(autoSaveFile)) {
+        try (Writer writer = new FileWriter(dataSave)) {
             writer.write(title);
-            for (Task task : getListOfAllTasks()) {
-                writer.write(task + "\n");
-            }
+            getListOfAllTasks().stream()
+                    .map(task -> task + "\n")
+                    .forEach(taskString -> {
+                        try {
+                            writer.write(taskString);
+                        } catch (IOException e) {
+                            throw new ManagerSaveException("Произошла ошибка во время записи файла: " + dataSave);
+                        }
+                    });
         } catch (IOException e) {
-            throw new ManagerSaveException("Произошла ошибка во время записи файла: " + autoSaveFile);
+            throw new ManagerSaveException("Произошла ошибка во время записи файла: " + dataSave);
         }
         try (Writer writer = new FileWriter(HISTORY_SAVE)) {
             writer.write(title);
-            for (Task task : historyManager.getHistory()) {
-                writer.write(task + "\n");
-            }
+            historyManager.getHistory().stream()
+                    .map(task -> task + "\n")
+                    .forEach(taskString -> {
+                        try {
+                            writer.write(taskString);
+                        } catch (IOException e) {
+                            throw new ManagerSaveException("Произошла ошибка во время записи файла: " + HISTORY_SAVE);
+                        }
+                    });
         } catch (IOException e) {
             throw new ManagerSaveException("Произошла ошибка во время записи файла: " + HISTORY_SAVE);
         }
@@ -45,37 +61,37 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
 
     public static FileBackedTaskManager loadFromFile(File save) {
         FileBackedTaskManager fileBackedTaskManager = new FileBackedTaskManager(save);
-        try (Reader reader = new FileReader(save);
-             BufferedReader br = new BufferedReader(reader)) {
-            while (br.ready()) {
-                Task task = fromString(br.readLine());
-                if (task != null) {
-                    if (task instanceof Epic) {
-                        fileBackedTaskManager.epics.put(task.getId(), (Epic) task);
-                    } else if (task instanceof Subtask) {
-                        fileBackedTaskManager.subtasks.put(task.getId(), (Subtask) task);
-                        fileBackedTaskManager.prioritizedTasks.add(task);
-                    } else {
-                        fileBackedTaskManager.tasks.put(task.getId(), task);
-                        fileBackedTaskManager.prioritizedTasks.add(task);
-                    }
-                }
-            }
+
+        try (BufferedReader reader = new BufferedReader(new FileReader(save))) {
+            reader.lines()
+                    .map(FileBackedTaskManager::fromString)
+                    .filter(Objects::nonNull)
+                    .forEach(task -> {
+                        if (task instanceof Epic) {
+                            fileBackedTaskManager.epics.put(task.getId(), (Epic) task);
+                        } else if (task instanceof Subtask) {
+                            fileBackedTaskManager.subtasks.put(task.getId(), (Subtask) task);
+                            if (!task.getStartTime().format(FORMATTER).equals(task.getDefaultDateTime().format(FORMATTER))) {
+                                fileBackedTaskManager.prioritizedTasks.add(task);
+                            }
+                        } else {
+                            fileBackedTaskManager.tasks.put(task.getId(), task);
+                            if (!task.getStartTime().format(FORMATTER).equals(task.getDefaultDateTime().format(FORMATTER))) {
+                                fileBackedTaskManager.prioritizedTasks.add(task);
+                            }
+                        }
+                    });
         } catch (IOException e) {
             throw new ManagerLoadException("Произошла ошибка во время загрузки файла: " + save);
         }
 
-        try (Reader reader = new FileReader(HISTORY_SAVE);
-             BufferedReader br = new BufferedReader(reader)) {
-            List<Task> listTasksFromHistory = new ArrayList<>();
-            if (br.readLine() != null) {
-                while (br.ready()) {
-                    listTasksFromHistory.add(fromString(br.readLine()));
-                }
-                for (Task task : listTasksFromHistory.reversed()) {
-                    fileBackedTaskManager.historyManager.add(task);
-                }
-            }
+        try (BufferedReader reader = new BufferedReader(new FileReader(HISTORY_SAVE))) {
+            List<Task> listTasksFromHistory = reader.lines()
+                    .map(FileBackedTaskManager::fromString)
+                    .filter(Objects::nonNull)
+                    .collect(Collectors.toList());
+            Collections.reverse(listTasksFromHistory);
+            listTasksFromHistory.forEach(fileBackedTaskManager.historyManager::add);
         } catch (IOException e) {
             throw new ManagerLoadException("Произошла ошибка во время загрузки файла: " + HISTORY_SAVE);
         }
@@ -84,7 +100,6 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
 
     public static Task fromString(String value) {
         Task task = null;
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm dd.MM.yyyy");
         if (Character.isDigit(value.charAt(0))) {
             String[] taskValues = value.split(",");
             int id = Integer.parseInt(taskValues[0]);
@@ -92,17 +107,13 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
             String name = taskValues[2];
             String description = taskValues[4];
             Status status = parseStatus(taskValues[3]);
-            LocalDateTime startTime = LocalDateTime.parse(taskValues[6], formatter);
-            LocalDateTime endTime = LocalDateTime.parse(taskValues[7], formatter);
+            LocalDateTime startTime = LocalDateTime.parse(taskValues[6], FORMATTER);
+            LocalDateTime endTime = LocalDateTime.parse(taskValues[7], FORMATTER);
             Duration duration = Duration.ofMinutes(Integer.parseInt(taskValues[8]));
 
             switch (type) {
-                case "Task" -> {
-                    task = new Task(id, name, description, status, startTime, duration);
-                }
-                case "Epic" -> {
-                    task = new Epic(id, name, description, status, startTime, endTime, duration);
-                }
+                case "Task" -> task = new Task(id, name, description, status, startTime, duration);
+                case "Epic" -> task = new Epic(id, name, description, status, startTime, endTime, duration);
                 case "Subtask" -> {
                     int epicId = Integer.parseInt(taskValues[5]);
                     task = new Subtask(id, name, description, status, startTime, duration, epicId);
@@ -147,22 +158,22 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
     }
 
     @Override
-    public Task getTask(int id) {
-        Task task = super.getTask(id);
+    public Optional<Task> getTask(int id) {
+        Optional<Task> task = super.getTask(id);
         save();
         return task;
     }
 
     @Override
-    public Task getEpic(int id) {
-        Epic epic = (Epic) super.getEpic(id);
+    public Optional<Task> getEpic(int id) {
+        Optional<Task> epic = super.getEpic(id);
         save();
         return epic;
     }
 
     @Override
-    public Task getSubtask(int id) {
-        Subtask subtask = (Subtask) super.getSubtask(id);
+    public Optional<Task> getSubtask(int id) {
+        Optional<Task> subtask = super.getSubtask(id);
         save();
         return subtask;
     }
