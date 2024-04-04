@@ -70,7 +70,10 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
                         if (task instanceof Epic) {
                             fileBackedTaskManager.epics.put(task.getId(), (Epic) task);
                         } else if (task instanceof Subtask) {
-                            fileBackedTaskManager.subtasks.put(task.getId(), (Subtask) task);
+                            Subtask subtask = (Subtask) task;
+                            Epic epic = fileBackedTaskManager.epics.get(subtask.getEpicId());
+                            fileBackedTaskManager.subtasks.put(subtask.getId(), subtask);
+                            epic.getSubtasksId().add(subtask.getId());
                             if (!task.getStartTime().format(FORMATTER).equals(task.getDefaultDateTime().format(FORMATTER))) {
                                 fileBackedTaskManager.prioritizedTasks.add(task);
                             }

@@ -19,7 +19,12 @@ public class InMemoryTaskManager implements TaskManager {
     protected final HistoryManager historyManager = Managers.getDefaultHistory();
     protected final Set<Task> prioritizedTasks = new TreeSet<>(Comparator.comparing(Task::getStartTime));
 
-    public InMemoryTaskManager() {
+    public static int getId() {
+        return id;
+    }
+
+    public static void setId(int id) {
+        InMemoryTaskManager.id = id;
     }
 
     @Override
@@ -39,7 +44,6 @@ public class InMemoryTaskManager implements TaskManager {
         if (task != null && !tasks.containsKey(task.getId())
                 && !epics.containsKey(task.getId()) && !subtasks.containsKey(task.getId())) {
             getPrioritizedTasks().forEach(t -> checkTasksIntersectionDuration(t, task));
-            task.setId(id++);
             tasks.put(task.getId(), task);
             prioritizedTasks.add(task);
         }
@@ -49,7 +53,6 @@ public class InMemoryTaskManager implements TaskManager {
     public void createEpic(Task task) {
         if (task instanceof Epic && !tasks.containsKey(task.getId())
                 && !epics.containsKey(task.getId()) && !subtasks.containsKey(task.getId())) {
-            task.setId(id++);
             epics.put(task.getId(), (Epic) task);
         }
     }
@@ -64,7 +67,6 @@ public class InMemoryTaskManager implements TaskManager {
                 Subtask subtask = (Subtask) task;
                 Epic epic = epics.get(epicId);
                 getPrioritizedTasks().forEach(t -> checkTasksIntersectionDuration(t, subtask));
-                subtask.setId(id++);
                 subtask.setEpicId(epicId);
                 subtasks.put(subtask.getId(), subtask);
                 epic.getSubtasksId().add(subtask.getId());
@@ -145,6 +147,7 @@ public class InMemoryTaskManager implements TaskManager {
         getPrioritizedTasks().stream()
                 .filter(t -> !t.equals(newTask))
                 .forEach(t -> checkTasksIntersectionDuration(t, newTask));
+        newTask.setEpicId(subtask.getEpicId());
         subtasks.put(newTask.getId(), newTask);
         updateEpicParameters(epics.get(newTask.getEpicId()));
         historyManager.updateHistory(newTask);
@@ -233,10 +236,12 @@ public class InMemoryTaskManager implements TaskManager {
     }
 
     private void updateEpicParameters(Epic epic) {
-        updateEpicStatus(epic);
-        updateEpicStartTime(epic);
-        updateEpicDuration(epic);
-        updateEpicEndTime(epic);
+        if (!epic.getSubtasksId().isEmpty()) {
+            updateEpicStatus(epic);
+            updateEpicStartTime(epic);
+            updateEpicDuration(epic);
+            updateEpicEndTime(epic);
+        }
     }
 
     private void checkTasksIntersectionDuration(Task task1, Task task2) {
