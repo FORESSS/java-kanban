@@ -17,7 +17,7 @@ class FileBackedTaskManagerTest extends TaskManagerTest<FileBackedTaskManager> {
 
     @Test
     void testSaveToFile() {
-        File invalidFile = new File("invalid\\path\\to\\file");
+        File invalidFile = new File("invalid\\path\\to\\file.pdf");
         FileBackedTaskManager manager = new FileBackedTaskManager(invalidFile);
         Task task = new Task("111", "222");
         assertThrows(ManagerSaveException.class, () -> {
@@ -27,7 +27,7 @@ class FileBackedTaskManagerTest extends TaskManagerTest<FileBackedTaskManager> {
 
     @Test
     void testLoadFromFile() {
-        File invalidFile = new File("invalid\\path\\to\\file");
+        File invalidFile = new File("invalid\\path\\to\\file.pdf");
         assertThrows(ManagerLoadException.class, () -> {
             FileBackedTaskManager.loadFromFile(invalidFile);
         }, "Загрузка не должна происходить");
