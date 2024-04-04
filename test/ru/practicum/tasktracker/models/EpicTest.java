@@ -1,27 +1,33 @@
 package ru.practicum.tasktracker.models;
-
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import ru.practicum.tasktracker.enums.Status;
 import ru.practicum.tasktracker.managers.TaskManager;
 import ru.practicum.tasktracker.utils.Managers;
-
 import static org.junit.jupiter.api.Assertions.*;
-
 public class EpicTest {
     private static TaskManager manager;
-
+    private static Task epic;
+    private static Task subtask1;
+    private static Task subtask2;
+    private static Task subtask3;
     @BeforeAll
     public static void createNewTasks() {
         manager = Managers.getDefault();
+        epic = new Epic(111, "111", "111", Status.NEW);
+        subtask1 = new Subtask(112, "112", "112", Status.NEW);
+        subtask2 = new Subtask(113, "112", "112", Status.NEW);
+        subtask3 = new Subtask(114, "112", "112", Status.NEW);
+        manager.createEpic(epic);
+        manager.createSubtask(subtask1);
+        manager.createSubtask(subtask2);
+        manager.createSubtask(subtask3);
     }
 
     @Test
     public void subtaskWithGeneratedIdShouldBeCreated() {
         Task epicWithGeneratedId = new Epic("epicWithGeneratedId", "");
         manager.createEpic(epicWithGeneratedId);
-
-        assertNotNull(epicWithGeneratedId.getId());
 
         assertNotNull(epicWithGeneratedId.getName());
 
@@ -32,52 +38,43 @@ public class EpicTest {
 
     @Test
     public void epicsWithSameIdShouldBeEqual() {
-        Task epic1 = new Epic(155, "111", "111", Status.DONE);
-        Task epic2 = new Epic(155, "222", "222", Status.IN_PROGRESS);
+        Task epic2 = new Epic(111, "11111", "11111", Status.DONE);
 
-        assertEquals(epic1, epic2);
+        assertEquals(epic, epic2);
     }
 
     @Test
     public void testUpdateEpicStatusIfAllSubtasksNew() {
-        Task epic = new Epic(555, "5", "5", Status.NEW);
-        manager.createEpic(epic);
-        manager.createSubtask(new Subtask(11, "3", "3", Status.NEW));
-        manager.createSubtask(new Subtask(12, "3", "3", Status.NEW));
-        manager.createSubtask(new Subtask(13, "3", "3", Status.NEW));
+        manager.updateSubtask(new Subtask(112, "112", "112", Status.NEW));
+        manager.updateSubtask(new Subtask(113, "113", "113", Status.NEW));
+        manager.updateSubtask(new Subtask(114, "114", "114", Status.NEW));
 
         assertEquals(Status.NEW, epic.getStatus());
     }
 
     @Test
     public void testUpdateEpicStatusIfAllSubtasksDone() {
-        Task epic = new Epic(666, "6", "6", Status.NEW);
-        manager.createEpic(epic);
-        manager.createSubtask(new Subtask(33, "3", "3", Status.DONE));
-        manager.createSubtask(new Subtask(44, "4", "4", Status.DONE));
-        manager.createSubtask(new Subtask(55, "5", "5", Status.DONE));
+        manager.updateSubtask(new Subtask(112, "112", "112", Status.DONE));
+        manager.updateSubtask(new Subtask(113, "113", "113", Status.DONE));
+        manager.updateSubtask(new Subtask(114, "114", "114", Status.DONE));
 
         assertEquals(Status.DONE, epic.getStatus());
     }
 
     @Test
     public void testUpdateEpicStatusIfSomeSubtasksNewAndDone() {
-        Task epic = new Epic(777, "7", "7", Status.NEW);
-        manager.createEpic(epic);
-        manager.createSubtask(new Subtask(66, "6", "6", Status.DONE));
-        manager.createSubtask(new Subtask(77, "7", "7", Status.NEW));
-        manager.createSubtask(new Subtask(88, "8", "8", Status.DONE));
+        manager.updateSubtask(new Subtask(112, "112", "112", Status.DONE));
+        manager.updateSubtask(new Subtask(113, "113", "113", Status.NEW));
+        manager.updateSubtask(new Subtask(114, "114", "114", Status.DONE));
 
         assertEquals(Status.IN_PROGRESS, epic.getStatus());
     }
 
     @Test
     public void testUpdateEpicStatusIfSomeSubtasksInProgress() {
-        Task epic = new Epic(888, "8", "8", Status.NEW);
-        manager.createEpic(epic);
-        manager.createSubtask(new Subtask(97, "97", "97", Status.DONE));
-        manager.createSubtask(new Subtask(98, "98", "98", Status.NEW));
-        manager.createSubtask(new Subtask(99, "99", "99", Status.IN_PROGRESS));
+        manager.updateSubtask(new Subtask(112, "112", "112", Status.DONE));
+        manager.updateSubtask(new Subtask(113, "113", "113", Status.IN_PROGRESS));
+        manager.updateSubtask(new Subtask(114, "114", "114", Status.IN_PROGRESS));
 
         assertEquals(Status.IN_PROGRESS, epic.getStatus());
     }

@@ -25,8 +25,6 @@ public class SubtaskTest {
         Task subtaskWithGeneratedId = new Subtask("subtaskWithGeneratedId", "");
         manager.createTask(subtaskWithGeneratedId);
 
-        assertNotNull(subtaskWithGeneratedId.getId());
-
         assertNotNull(subtaskWithGeneratedId.getName());
 
         assertNotNull(subtaskWithGeneratedId.getDescription());

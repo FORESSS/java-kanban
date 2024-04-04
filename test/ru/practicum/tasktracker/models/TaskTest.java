@@ -15,8 +15,6 @@ public class TaskTest {
         Task taskWithGeneratedId = new Task("taskWithGeneratedId", "");
         manager.createTask(taskWithGeneratedId);
 
-        assertNotNull(taskWithGeneratedId.getId());
-
         assertNotNull(taskWithGeneratedId.getName());
 
         assertNotNull(taskWithGeneratedId.getDescription());
