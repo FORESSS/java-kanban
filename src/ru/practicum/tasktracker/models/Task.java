@@ -2,6 +2,7 @@ package ru.practicum.tasktracker.models;
 
 import ru.practicum.tasktracker.enums.Status;
 import ru.practicum.tasktracker.enums.Types;
+import ru.practicum.tasktracker.managers.InMemoryTaskManager;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -20,10 +21,12 @@ public class Task {
     protected final LocalDateTime defaultDateTime = LocalDateTime.MAX;
 
     public Task(String name, String description) {
+        this.id = InMemoryTaskManager.getId();
         this.name = name;
         this.description = description;
         this.status = Status.NEW;
         this.type = Types.Task;
+        InMemoryTaskManager.setId(InMemoryTaskManager.getId() + 1);
     }
 
     public Task(int id, String name, String description, Status status) {
