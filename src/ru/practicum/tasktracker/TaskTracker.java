@@ -1,23 +1,26 @@
 package ru.practicum.tasktracker;
+
 import ru.practicum.tasktracker.enums.Status;
 import ru.practicum.tasktracker.managers.FileBackedTaskManager;
 import ru.practicum.tasktracker.managers.TaskManager;
 import ru.practicum.tasktracker.models.Epic;
 import ru.practicum.tasktracker.models.Subtask;
 import ru.practicum.tasktracker.models.Task;
+
 import java.io.File;
 import java.time.Duration;
 import java.time.LocalDateTime;
+
 public class TaskTracker {
     public static void main(String[] args) {
         TaskManager manager = new FileBackedTaskManager(new File("resources\\data.csv"));
 
         Task task1 = new Task("123", "123", LocalDateTime.now().plusMinutes(120), Duration.ofMinutes(20));
-        Task task2 = new Task(145,"456", "456",Status.NEW);
+        Task task2 = new Task(145, "456", "456", Status.NEW);
         manager.createTask(task1);
         manager.createTask(task2);
 
-        Task epic1 = new Epic(888,"987", "987",Status.NEW);
+        Task epic1 = new Epic(888, "987", "987", Status.NEW);
         manager.createEpic(epic1);
 
         Task subtask1 = new Subtask("4", "4", LocalDateTime.now(), Duration.ofMinutes(5));
