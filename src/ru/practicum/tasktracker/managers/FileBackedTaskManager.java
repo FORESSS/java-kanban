@@ -12,7 +12,6 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Collections;
-import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -69,8 +68,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
                     .forEach(task -> {
                         if (task instanceof Epic) {
                             fileBackedTaskManager.epics.put(task.getId(), (Epic) task);
-                        } else if (task instanceof Subtask) {
-                            Subtask subtask = (Subtask) task;
+                        } else if (task instanceof Subtask subtask) {
                             Epic epic = fileBackedTaskManager.epics.get(subtask.getEpicId());
                             fileBackedTaskManager.subtasks.put(subtask.getId(), subtask);
                             epic.getSubtasksId().add(subtask.getId());
@@ -89,12 +87,14 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
         }
 
         try (BufferedReader reader = new BufferedReader(new FileReader(HISTORY_SAVE))) {
-            List<Task> listTasksFromHistory = reader.lines()
+            reader.lines()
                     .map(FileBackedTaskManager::fromString)
                     .filter(Objects::nonNull)
-                    .collect(Collectors.toList());
-            Collections.reverse(listTasksFromHistory);
-            listTasksFromHistory.forEach(fileBackedTaskManager.historyManager::add);
+                    .collect(Collectors.collectingAndThen(Collectors.toList(), list -> {
+                        Collections.reverse(list);
+                        return list.stream();
+                    }))
+                    .forEach(fileBackedTaskManager.historyManager::add);
         } catch (IOException e) {
             throw new ManagerLoadException("Произошла ошибка во время загрузки файла: " + HISTORY_SAVE);
         }
