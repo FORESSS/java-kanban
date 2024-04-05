@@ -1,5 +1,2 @@
-id,type,name,status,description,epic
-123,Task,task,NEW,123
-456,Epic,epic,NEW,456
-787,Subtask,subtask1,NEW,787,456
-788,Subtask,subtask2,NEW,788,456
+id,type,name,status,description,epic,startTime,endTime,duration(minutes)
+1,Task,111,NEW,222,n/a,23:59 31.12.+999999999,23:59 31.12.+999999999,0

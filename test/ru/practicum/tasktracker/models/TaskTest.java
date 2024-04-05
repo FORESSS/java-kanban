@@ -20,8 +20,6 @@ public class TaskTest {
         assertNotNull(taskWithGeneratedId.getDescription());
 
         assertNotNull(taskWithGeneratedId.getStatus());
-
-        System.out.println(taskWithGeneratedId);
     }
 
     @Test

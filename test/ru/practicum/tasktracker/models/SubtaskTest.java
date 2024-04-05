@@ -30,8 +30,6 @@ public class SubtaskTest {
         assertNotNull(subtaskWithGeneratedId.getDescription());
 
         assertNotNull(subtaskWithGeneratedId.getStatus());
-
-        System.out.println(subtaskWithGeneratedId);
     }
 
     @Test

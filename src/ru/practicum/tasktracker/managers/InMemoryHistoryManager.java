@@ -3,6 +3,8 @@ package ru.practicum.tasktracker.managers;
 import ru.practicum.tasktracker.models.Task;
 
 import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class InMemoryHistoryManager implements HistoryManager {
     private final Map<Integer, Node<Task>> historyMap = new HashMap<>();
@@ -22,34 +24,45 @@ public class InMemoryHistoryManager implements HistoryManager {
     }
 
     private List<Task> getTasks() {
-        List<Task> tasks = new ArrayList<>();
-        Node<Task> currentNode = head;
-        while (!(currentNode == null)) {
-            tasks.add(currentNode.data);
-            currentNode = currentNode.next;
-        }
-        return tasks;
+        return Stream.iterate(head, Objects::nonNull, node -> node.next)
+                .map(node -> node.data)
+                .collect(Collectors.toList());
     }
 
     private void removeNode(Node<Task> node) {
         if (node != null) {
-            final Node<Task> next = node.next;
-            final Node<Task> prev = node.prev;
+            Node<Task> next = node.next;
+            Node<Task> prev = node.prev;
             node.data = null;
             if (head == node && tail == node) {
                 head = null;
                 tail = null;
             } else if (head == node) {
                 head = next;
-                head.prev = null;
+                if (head != null) {
+                    head.prev = null;
+                }
             } else if (tail == node) {
                 tail = prev;
-                tail.next = null;
+                if (tail != null) {
+                    tail.next = null;
+                }
             } else {
                 prev.next = next;
                 next.prev = prev;
             }
         }
+    }
+
+    @Override
+    public void updateHistory(Task task) {
+        if (historyMap.containsKey(task.getId())) {
+            historyMap.get(task.getId()).data = getCopyTask(task);
+        }
+    }
+
+    private Task getCopyTask(Task task) {
+        return task.createCopyTask(task);
     }
 
     @Override

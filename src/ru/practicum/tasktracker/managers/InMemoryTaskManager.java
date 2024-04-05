@@ -1,26 +1,30 @@
 package ru.practicum.tasktracker.managers;
 
 import ru.practicum.tasktracker.enums.Status;
+import ru.practicum.tasktracker.exceptions.IntersectDurationTaskException;
 import ru.practicum.tasktracker.models.Epic;
 import ru.practicum.tasktracker.models.Subtask;
 import ru.practicum.tasktracker.models.Task;
 import ru.practicum.tasktracker.utils.Managers;
 
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.*;
 
 public class InMemoryTaskManager implements TaskManager {
-    protected final Map<Integer, Task> tasks;
-    protected final Map<Integer, Epic> epics;
-    protected final Map<Integer, Subtask> subtasks;
-    protected final Map<Integer, List<Integer>> epicAndSubtasksId;
-    protected final HistoryManager historyManager;
+    protected static int id = 1;
+    protected final Map<Integer, Task> tasks = new HashMap<>();
+    protected final Map<Integer, Epic> epics = new HashMap<>();
+    protected final Map<Integer, Subtask> subtasks = new HashMap<>();
+    protected final HistoryManager historyManager = Managers.getDefaultHistory();
+    protected final Set<Task> prioritizedTasks = new TreeSet<>(Comparator.comparing(Task::getStartTime));
 
-    public InMemoryTaskManager() {
-        tasks = new HashMap<>();
-        subtasks = new HashMap<>();
-        epics = new HashMap<>();
-        epicAndSubtasksId = new LinkedHashMap<>();
-        historyManager = Managers.getDefaultHistory();
+    public static int getId() {
+        return id;
+    }
+
+    public static void setId(int id) {
+        InMemoryTaskManager.id = id;
     }
 
     @Override
@@ -28,51 +32,55 @@ public class InMemoryTaskManager implements TaskManager {
         return historyManager;
     }
 
-    private static int taskCounter = 1;
-
-    public static int getTaskCounter() {
-        return taskCounter;
-    }
-
-    public static void setTaskCounter(int taskCounter) {
-        InMemoryTaskManager.taskCounter = taskCounter;
+    @Override
+    public List<Task> getPrioritizedTasks() {
+        return prioritizedTasks.stream()
+                .filter(task -> !task.getStartTime().equals(task.getDefaultDateTime()))
+                .toList();
     }
 
     @Override
     public void createTask(Task task) {
-        if (task != null) {
-            if (!tasks.containsKey(task.getId()) && !epics.containsKey(task.getId()) && !subtasks.containsKey(task.getId())) {
-                tasks.put(task.getId(), task);
-            }
+        if (task != null && isKeyNotContainsInMaps(task.getId())) {
+            getPrioritizedTasks().forEach(t -> {
+                try {
+                    checkTasksIntersectionDuration(t, task);
+                } catch (IntersectDurationTaskException e) {
+                    System.out.println(e.getMessage());
+                }
+            });
+            tasks.put(task.getId(), task);
+            prioritizedTasks.add(task);
         }
     }
 
     @Override
     public void createEpic(Task task) {
-        if (task != null) {
-            if (task instanceof Epic) {
-                if (!tasks.containsKey(task.getId()) && !epics.containsKey(task.getId()) && !subtasks.containsKey(task.getId())) {
-                    epics.put(task.getId(), (Epic) task);
-                }
-            }
+        if (task instanceof Epic && isKeyNotContainsInMaps(task.getId())) {
+            epics.put(task.getId(), (Epic) task);
         }
     }
 
     @Override
     public void createSubtask(Task task) {
-        if (task != null) {
-            if (!tasks.containsKey(task.getId()) && !epics.containsKey(task.getId()) && !subtasks.containsKey(task.getId())) {
-                SortedMap<Integer, Epic> tmpMap = new TreeMap<>(epics);
-                if (!tmpMap.isEmpty()) {
-                    int idOfEpic = tmpMap.lastKey();
-                    if (epics.containsKey(idOfEpic)) {
-                        subtasks.put(task.getId(), (Subtask) task);
-                        createListOfSubtasksId(idOfEpic, task);
-                        ((Subtask) task).setEpicId(idOfEpic);
-                    } else {
-                        taskCounter--;
+        if (task instanceof Subtask && isKeyNotContainsInMaps(task.getId())) {
+            SortedMap<Integer, Epic> tmpMap = new TreeMap<>(epics);
+            if (!tmpMap.isEmpty()) {
+                int epicId = tmpMap.lastKey();
+                Subtask subtask = (Subtask) task;
+                Epic epic = epics.get(epicId);
+                getPrioritizedTasks().forEach(t -> {
+                    try {
+                        checkTasksIntersectionDuration(t, subtask);
+                    } catch (IntersectDurationTaskException e) {
+                        System.out.println(e.getMessage());
                     }
-                }
+                });
+                subtask.setEpicId(epicId);
+                subtasks.put(subtask.getId(), subtask);
+                epic.getSubtasksId().add(subtask.getId());
+                updateEpicParameters(epic);
+                prioritizedTasks.add(subtask);
             }
         }
     }
@@ -91,181 +99,185 @@ public class InMemoryTaskManager implements TaskManager {
         tasks.clear();
         epics.clear();
         subtasks.clear();
-        epicAndSubtasksId.clear();
-        setTaskCounter(1);
+        prioritizedTasks.clear();
+        id = 1;
     }
 
     @Override
-    public Task getTask(int id) {
+    public Optional<Task> getTask(int id) {
         Task task = tasks.getOrDefault(id, null);
         historyManager.add(task);
-        return task;
+        return Optional.ofNullable(task);
     }
 
     @Override
-    public Task getEpic(int id) {
+    public Optional<Task> getEpic(int id) {
         Epic epic = epics.getOrDefault(id, null);
         historyManager.add(epic);
-        return epic;
+        return Optional.ofNullable(epic);
     }
 
     @Override
-    public Task getSubtask(int id) {
+    public Optional<Task> getSubtask(int id) {
         Subtask subtask = subtasks.getOrDefault(id, null);
         historyManager.add(subtask);
-        return subtask;
+        return Optional.ofNullable(subtask);
     }
 
     @Override
     public void updateTask(Task newTask) {
-        if (newTask != null) {
-            if (tasks.containsKey(newTask.getId())) {
-                tasks.put(newTask.getId(), newTask);
-            }
+        if (tasks.get(newTask.getId()) == null) {
+            return;
         }
+        getPrioritizedTasks().stream()
+                .filter(t -> !t.equals(newTask))
+                .forEach(t -> {
+                    try {
+                        checkTasksIntersectionDuration(t, newTask);
+                    } catch (IntersectDurationTaskException e) {
+                        System.out.println(e.getMessage());
+                    }
+                });
+        tasks.put(newTask.getId(), newTask);
+        historyManager.updateHistory(newTask);
+        prioritizedTasks.remove(tasks.get(newTask.getId()));
+        prioritizedTasks.add(newTask);
     }
 
     @Override
     public void updateEpic(Epic newTask) {
-        if (newTask != null) {
-            if (epics.containsKey(newTask.getId())) {
-                epics.put(newTask.getId(), newTask);
-            }
+        if (epics.get(newTask.getId()) == null) {
+            return;
         }
+        epics.put(newTask.getId(), newTask);
+        historyManager.updateHistory(newTask);
     }
 
     @Override
     public void updateSubtask(Subtask newTask) {
-        if (newTask != null) {
-            if (subtasks.containsKey(newTask.getId())) {
-                newTask.setEpicId(subtasks.get(newTask.getId()).getEpicId());
-                subtasks.put(newTask.getId(), newTask);
-                updateEpicStatus(newTask.getId());
-            }
+        if (subtasks.get(newTask.getId()) == null) {
+            return;
         }
-    }
-
-    @Override
-    public void deleteTask(int id) {
-        tasks.remove(id);
-        historyManager.remove(id);
-    }
-
-    @Override
-    public void deleteEpic(int id) {
-        epics.remove(id);
-        historyManager.remove(id);
-        for (Map.Entry<Integer, List<Integer>> pairId : epicAndSubtasksId.entrySet()) {
-            if (id == pairId.getKey()) {
-                for (Integer key : pairId.getValue()) {
-                    subtasks.remove(key);
-                    historyManager.remove(key);
-                }
-            }
-        }
-        epicAndSubtasksId.remove(id);
-    }
-
-    @Override
-    public void deleteSubtask(int id) {
-        subtasks.remove(id);
-        historyManager.remove(id);
-        for (Map.Entry<Integer, List<Integer>> pairId : epicAndSubtasksId.entrySet()) {
-            if (pairId.getValue().contains(id)) {
-                pairId.getValue().remove((Integer) id);
-                if (pairId.getValue().isEmpty()) {
-                    epics.get(pairId.getKey()).setStatus(Status.NEW);
-                } else {
-                    int idOfSubtask = epicAndSubtasksId.get(pairId.getKey()).get(0);
-                    if (isStatusOfSubtasksNew(idOfSubtask)) {
-                        epics.get(pairId.getKey()).setStatus(Status.NEW);
-                    } else if (isStatusOfSubtasksDone(idOfSubtask)) {
-                        epics.get(pairId.getKey()).setStatus(Status.DONE);
+        Subtask subtask = subtasks.get(newTask.getId());
+        getPrioritizedTasks().stream()
+                .filter(t -> !t.equals(newTask))
+                .forEach(t -> {
+                    try {
+                        checkTasksIntersectionDuration(t, newTask);
+                    } catch (IntersectDurationTaskException e) {
+                        System.out.println(e.getMessage());
                     }
-                }
-            }
-        }
+                });
+        newTask.setEpicId(subtask.getEpicId());
+        subtasks.put(newTask.getId(), newTask);
+        updateEpicParameters(epics.get(newTask.getEpicId()));
+        historyManager.updateHistory(newTask);
+        historyManager.updateHistory(epics.get(newTask.getEpicId()));
+        prioritizedTasks.remove(subtask);
+        prioritizedTasks.add(newTask);
     }
 
     @Override
-    public List<Subtask> getListOfSubtasksByEpicId(int idOfEpic) {
-        List<Subtask> listOfSubtasks = new ArrayList<>();
-        if (epics.containsKey(idOfEpic)) {
-            for (Map.Entry<Integer, List<Integer>> pairId : epicAndSubtasksId.entrySet()) {
-                if (idOfEpic == pairId.getKey()) {
-                    for (Integer key : pairId.getValue()) {
-                        listOfSubtasks.add(subtasks.get(key));
-                    }
-                }
-            }
-        }
-        return listOfSubtasks;
+    public void deleteTask(int taskId) {
+        prioritizedTasks.remove(tasks.get(taskId));
+        tasks.remove(taskId);
+        historyManager.remove(taskId);
     }
 
-    protected void createListOfSubtasksId(int idOfEpic, Task subtask) {
-        if (epicAndSubtasksId.containsKey(idOfEpic)) {
-            List<Integer> listOfSubtasksId = epicAndSubtasksId.get(idOfEpic);
-            if (!listOfSubtasksId.contains(subtask.getId())) {
-                listOfSubtasksId.add(subtask.getId());
-            }
+    @Override
+    public void deleteEpic(int epicId) {
+        List<Integer> subtasksId = epics.get(epicId).getSubtasksId();
+        subtasksId.forEach(id -> {
+            prioritizedTasks.remove(subtasks.get(id));
+            subtasks.remove(id);
+            historyManager.remove(id);
+        });
+        epics.remove(epicId);
+        historyManager.remove(epicId);
+    }
+
+    @Override
+    public void deleteSubtask(Integer subtaskId) {
+        int epicId = subtasks.get(subtaskId).getEpicId();
+        Subtask subtask = subtasks.get(subtaskId);
+        Epic epic = epics.get(epicId);
+        epic.getSubtasksId().remove(subtaskId);
+        prioritizedTasks.remove(subtask);
+        subtasks.remove(subtaskId);
+        historyManager.remove(subtaskId);
+        updateEpicParameters(epic);
+        historyManager.updateHistory(epic);
+    }
+
+    @Override
+    public List<Subtask> getListOfSubtasksByEpicId(int epicId) {
+        return epics.get(epicId).getSubtasksId().stream()
+                .map(subtasks::get)
+                .toList();
+    }
+
+    private void updateEpicStatus(Epic epic) {
+        long newSize = epic.getSubtasksId().stream()
+                .filter(id -> subtasks.get(id).getStatus() == Status.NEW)
+                .count();
+        long doneSize = epic.getSubtasksId().stream()
+                .filter(id -> subtasks.get(id).getStatus() == Status.DONE)
+                .count();
+
+        if (newSize == epic.getSizeSubTasksIdList()) {
+            epic.setStatus(Status.NEW);
+        } else if (doneSize == epic.getSizeSubTasksIdList()) {
+            epic.setStatus(Status.DONE);
         } else {
-            List<Integer> listOfSubtasksId = new ArrayList<>();
-            listOfSubtasksId.add(subtask.getId());
-            epicAndSubtasksId.put(idOfEpic, listOfSubtasksId);
+            epic.setStatus(Status.IN_PROGRESS);
         }
     }
 
-    private void updateEpicStatus(int subtaskId) {
-        for (Map.Entry<Integer, List<Integer>> pairId : epicAndSubtasksId.entrySet()) {
-            if (pairId.getValue().contains(subtaskId)) {
-                if (isStatusOfSubtasksNew(subtaskId)) {
-                    epics.get(pairId.getKey()).setStatus(Status.NEW);
-                } else if (isStatusOfSubtasksDone(subtaskId)) {
-                    epics.get(pairId.getKey()).setStatus(Status.DONE);
-                } else {
-                    epics.get(pairId.getKey()).setStatus(Status.IN_PROGRESS);
-                }
-            }
+    private void updateEpicStartTime(Epic epic) {
+        epic.setStartTime(epic.getSubtasksId().stream()
+                .map(id -> subtasks.get(id).getStartTime())
+                .min(LocalDateTime::compareTo).orElse(null));
+    }
+
+    private void updateEpicEndTime(Epic epic) {
+        LocalDateTime maxEndTime = epic.getSubtasksId().stream()
+                .map(subtasks::get)
+                .filter(subtask -> !subtask.getEndTime().equals(subtask.getDefaultDateTime()))
+                .map(Subtask::getEndTime)
+                .max(LocalDateTime::compareTo)
+                .orElse(null);
+        epic.setEndTime(maxEndTime);
+    }
+
+    private void updateEpicDuration(Epic epic) {
+        epic.setDuration(Duration.ofMinutes(epic.getSubtasksId().stream()
+                .map(id -> subtasks.get(id).getDuration().toMinutes())
+                .mapToLong(Long::intValue)
+                .sum()));
+    }
+
+    private void updateEpicParameters(Epic epic) {
+        if (!epic.getSubtasksId().isEmpty()) {
+            updateEpicStatus(epic);
+            updateEpicStartTime(epic);
+            updateEpicDuration(epic);
+            updateEpicEndTime(epic);
         }
     }
 
-    private boolean isStatusOfSubtasksNew(int id) {
-        boolean isAllSubtasksIsNew = false;
-        int counter = 0;
-        int size = 0;
-        for (Map.Entry<Integer, List<Integer>> pairId : epicAndSubtasksId.entrySet()) {
-            if (pairId.getValue().contains(id)) {
-                size = epicAndSubtasksId.get(pairId.getKey()).size();
-                for (Integer subtasksId : epicAndSubtasksId.get(pairId.getKey())) {
-                    if (subtasks.get(subtasksId).getStatus().equals(Status.NEW)) {
-                        counter++;
-                    }
-                }
-            }
+    private void checkTasksIntersectionDuration(Task task1, Task task2) throws IntersectDurationTaskException {
+        boolean isIntersect = (task1.getStartTime().isAfter(task2.getStartTime())
+                && task1.getStartTime().isBefore(task2.getEndTime()))
+                || (task1.getStartTime().isBefore(task2.getStartTime())
+                && task1.getEndTime().isAfter(task2.getStartTime()))
+                || (task1.getStartTime().isEqual(task2.getStartTime())
+                || task1.getEndTime().isEqual(task2.getEndTime()));
+        if (isIntersect) {
+            throw new IntersectDurationTaskException("Пересечение задач по времени выполнения!");
         }
-        if (counter == size) {
-            isAllSubtasksIsNew = true;
-        }
-        return isAllSubtasksIsNew;
     }
 
-    private boolean isStatusOfSubtasksDone(int id) {
-        boolean isAllSubtasksIsDone = false;
-        int counter = 0;
-        int size = 0;
-        for (Map.Entry<Integer, List<Integer>> pairId : epicAndSubtasksId.entrySet()) {
-            if (pairId.getValue().contains(id)) {
-                size = epicAndSubtasksId.get(pairId.getKey()).size();
-                for (Integer subtasksId : epicAndSubtasksId.get(pairId.getKey())) {
-                    if (subtasks.get(subtasksId).getStatus().equals(Status.DONE)) {
-                        counter++;
-                    }
-                }
-            }
-        }
-        if (counter == size) {
-            isAllSubtasksIsDone = true;
-        }
-        return isAllSubtasksIsDone;
+    private boolean isKeyNotContainsInMaps(int id) {
+        return !tasks.containsKey(id) && !epics.containsKey(id) && !subtasks.containsKey(id);
     }
 }

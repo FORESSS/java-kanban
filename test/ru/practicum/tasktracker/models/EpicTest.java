@@ -1,26 +1,31 @@
 package ru.practicum.tasktracker.models;
-
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import ru.practicum.tasktracker.enums.Status;
 import ru.practicum.tasktracker.managers.TaskManager;
 import ru.practicum.tasktracker.utils.Managers;
-
 import static org.junit.jupiter.api.Assertions.*;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-
 public class EpicTest {
-    private static Task epic1;
-    private static Task epic2;
-
+    private static TaskManager manager;
+    private static Task epic;
+    private static Task subtask1;
+    private static Task subtask2;
+    private static Task subtask3;
     @BeforeAll
     public static void createNewTasks() {
-        epic1 = new Epic(123, "111", "111");
-        epic2 = new Epic(123, "222", "222");
+        manager = Managers.getDefault();
+        epic = new Epic(111, "111", "111", Status.NEW);
+        subtask1 = new Subtask(112, "112", "112", Status.NEW);
+        subtask2 = new Subtask(113, "112", "112", Status.NEW);
+        subtask3 = new Subtask(114, "112", "112", Status.NEW);
+        manager.createEpic(epic);
+        manager.createSubtask(subtask1);
+        manager.createSubtask(subtask2);
+        manager.createSubtask(subtask3);
     }
 
     @Test
     public void subtaskWithGeneratedIdShouldBeCreated() {
-        TaskManager manager = Managers.getDefault();
         Task epicWithGeneratedId = new Epic("epicWithGeneratedId", "");
         manager.createEpic(epicWithGeneratedId);
 
@@ -29,19 +34,48 @@ public class EpicTest {
         assertNotNull(epicWithGeneratedId.getDescription());
 
         assertNotNull(epicWithGeneratedId.getStatus());
-
-        System.out.println(epicWithGeneratedId);
     }
 
     @Test
     public void epicsWithSameIdShouldBeEqual() {
+        Task epic2 = new Epic(111, "11111", "11111", Status.DONE);
 
-        assertEquals(epic1, epic2);
+        assertEquals(epic, epic2);
     }
 
     @Test
-    void epicShouldNotCreateLikeSubtask() {
+    public void testUpdateEpicStatusIfAllSubtasksNew() {
+        manager.updateSubtask(new Subtask(112, "112", "112", Status.NEW));
+        manager.updateSubtask(new Subtask(113, "113", "113", Status.NEW));
+        manager.updateSubtask(new Subtask(114, "114", "114", Status.NEW));
 
-        assertFalse(epic1 instanceof Subtask);
+        assertEquals(Status.NEW, epic.getStatus());
+    }
+
+    @Test
+    public void testUpdateEpicStatusIfAllSubtasksDone() {
+        manager.updateSubtask(new Subtask(112, "112", "112", Status.DONE));
+        manager.updateSubtask(new Subtask(113, "113", "113", Status.DONE));
+        manager.updateSubtask(new Subtask(114, "114", "114", Status.DONE));
+
+        assertEquals(Status.DONE, epic.getStatus());
+    }
+
+    @Test
+    public void testUpdateEpicStatusIfSomeSubtasksNewAndDone() {
+        manager.updateSubtask(new Subtask(112, "112", "112", Status.DONE));
+        manager.updateSubtask(new Subtask(113, "113", "113", Status.NEW));
+        manager.updateSubtask(new Subtask(114, "114", "114", Status.DONE));
+
+        assertEquals(Status.IN_PROGRESS, epic.getStatus());
+    }
+
+    @Test
+    public void testUpdateEpicStatusIfSomeSubtasksInProgress() {
+        manager.updateSubtask(new Subtask(112, "112", "112", Status.DONE));
+        manager.updateSubtask(new Subtask(113, "113", "113", Status.IN_PROGRESS));
+        manager.updateSubtask(new Subtask(114, "114", "114", Status.IN_PROGRESS));
+
+        assertEquals(Status.IN_PROGRESS, epic.getStatus());
     }
 }
