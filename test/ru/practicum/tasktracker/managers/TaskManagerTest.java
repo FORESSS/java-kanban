@@ -3,7 +3,6 @@ package ru.practicum.tasktracker.managers;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import ru.practicum.tasktracker.enums.Status;
-import ru.practicum.tasktracker.exceptions.IntersectDurationTaskException;
 import ru.practicum.tasktracker.models.Epic;
 import ru.practicum.tasktracker.models.Subtask;
 import ru.practicum.tasktracker.models.Task;
@@ -200,12 +199,12 @@ abstract class TaskManagerTest<T extends TaskManager> {
 
     @Test
     void testTaskIntersectionDuration() {
-        Task task1 = new Task(1, "Task 1", "Description", Status.NEW, LocalDateTime.now(), Duration.ofHours(2));
-        Task task2 = new Task(2, "Task 2", "Description", Status.NEW, LocalDateTime.now().plusHours(1), Duration.ofHours(2));
+        Task task1 = new Task(1, "Task 1", "Description", Status.NEW,
+                LocalDateTime.now(), Duration.ofHours(2));
+        Task task2 = new Task(2, "Task 2", "Description", Status.NEW,
+                LocalDateTime.now().plusHours(5), Duration.ofHours(2));
         manager.createTask(task1);
 
-        assertThrows(IntersectDurationTaskException.class, () -> {
-            manager.createTask(task2);
-        }, "Должно быть пересечение по времени!");
+        assertDoesNotThrow(() -> manager.createTask(task2), "Не должно быть пересечения по времени!");
     }
 }

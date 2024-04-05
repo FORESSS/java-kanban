@@ -48,7 +48,7 @@ public class TaskTracker {
 
         TaskManager fileBackedTaskManager = FileBackedTaskManager.loadFromFile(new File("resources\\data.csv"));
         System.out.println(fileBackedTaskManager.getListOfAllTasks());
-        fileBackedTaskManager.updateSubtask(new Subtask(5, "4", "4", Status.DONE, LocalDateTime.now(), Duration.ofMinutes(4), 888));
+        fileBackedTaskManager.updateSubtask(new Subtask(5, "4", "4", Status.DONE, LocalDateTime.now().minusYears(1), Duration.ofMinutes(4), 888));
         System.out.println(fileBackedTaskManager.getListOfAllTasks());
         System.out.println(fileBackedTaskManager.getHistoryManager().getHistory());
         System.out.println(fileBackedTaskManager.getPrioritizedTasks());
