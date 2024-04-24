@@ -19,7 +19,7 @@ class FileBackedTaskManagerTest extends TaskManagerTest<FileBackedTaskManager> {
         FileBackedTaskManager manager = new FileBackedTaskManager(file);
         Task task = new Task("111", "222");
 
-        assertDoesNotThrow(() -> manager.createTask(task),
+        assertDoesNotThrow(() -> manager.addTask(task),
                 "Не должно выбрасываться исключение при сохранении в файл");
     }
 

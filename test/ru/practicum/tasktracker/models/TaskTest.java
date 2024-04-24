@@ -13,7 +13,7 @@ public class TaskTest {
     public void taskWithGeneratedIdShouldBeCreated() {
         TaskManager manager = Managers.getDefault();
         Task taskWithGeneratedId = new Task("taskWithGeneratedId", "");
-        manager.createTask(taskWithGeneratedId);
+        manager.addTask(taskWithGeneratedId);
 
         assertNotNull(taskWithGeneratedId.getName());
 

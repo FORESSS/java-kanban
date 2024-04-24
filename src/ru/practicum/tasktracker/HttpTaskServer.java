@@ -17,7 +17,7 @@ public class HttpTaskServer {
         TaskManager manager = Managers.loadFromFile(new File("resources\\data.csv"));
         startHttpTaskServer(manager);
         try {
-            Thread.sleep(100000);
+            Thread.sleep(1000000);
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }

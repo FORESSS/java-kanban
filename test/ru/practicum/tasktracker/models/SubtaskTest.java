@@ -23,7 +23,7 @@ public class SubtaskTest {
     public void subtaskWithGeneratedIdShouldBeCreated() {
         TaskManager manager = Managers.getDefault();
         Task subtaskWithGeneratedId = new Subtask("subtaskWithGeneratedId", "");
-        manager.createTask(subtaskWithGeneratedId);
+        manager.addTask(subtaskWithGeneratedId);
 
         assertNotNull(subtaskWithGeneratedId.getName());
 

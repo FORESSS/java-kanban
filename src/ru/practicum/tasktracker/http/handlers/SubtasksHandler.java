@@ -86,11 +86,11 @@ public class SubtasksHandler extends BasicHandler implements HttpHandler {
             Subtask subtaskFromJson = gson.fromJson(bodyString, Subtask.class);
             if (taskManager.getSubtasks().containsKey(subtaskFromJson.getId())) {
                 responseCode = 201;
-                taskManager.updateTask(subtaskFromJson);
+                taskManager.updateSubtask(subtaskFromJson);
                 response = "Подзадача с id: " + subtaskFromJson.getId() + " обновлена";
             } else {
                 responseCode = 201;
-                taskManager.addTask(subtaskFromJson);
+                taskManager.addSubtask(subtaskFromJson);
                 response = "Подзадача с id: " + subtaskFromJson.getId() + " успешно добавлена";
             }
         } catch (IntersectDurationTaskException exception) {
