@@ -29,7 +29,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
         String title = "id,type,name,status,description,epic,startTime,endTime,duration(minutes)\n";
         try (Writer writer = new FileWriter(dataSave)) {
             writer.write(title);
-            getListOfAllTasks().stream()
+            getListOfAllTypesTasks().stream()
                     .map(task -> task + "\n")
                     .forEach(taskString -> {
                         try {
@@ -55,7 +55,6 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
         } catch (IOException e) {
             throw new ManagerSaveException("Произошла ошибка во время записи файла: " + HISTORY_SAVE);
         }
-        System.out.println("Изменения успешно сохранены!");
     }
 
     public static FileBackedTaskManager loadFromFile(File save) {
@@ -137,26 +136,20 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
     }
 
     @Override
-    public void createTask(Task task) {
-        super.createTask(task);
+    public void addTask(Task task) {
+        super.addTask(task);
         save();
     }
 
     @Override
-    public void createEpic(Task task) {
-        super.createEpic(task);
+    public void addEpic(Task task) {
+        super.addEpic(task);
         save();
     }
 
     @Override
-    public void createSubtask(Task task) {
-        super.createSubtask(task);
-        save();
-    }
-
-    @Override
-    public void deleteAllTasks() {
-        super.deleteAllTasks();
+    public void addSubtask(Task task) {
+        super.addSubtask(task);
         save();
     }
 
@@ -214,6 +207,30 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
     @Override
     public void deleteSubtask(Integer id) {
         super.deleteSubtask(id);
+        save();
+    }
+
+    @Override
+    public void deleteAllTypesTasks() {
+        super.deleteAllTypesTasks();
+        save();
+    }
+
+    @Override
+    public void deleteAllTasks() {
+        super.deleteAllTasks();
+        save();
+    }
+
+    @Override
+    public void deleteAllEpics() {
+        super.deleteAllEpics();
+        save();
+    }
+
+    @Override
+    public void deleteAllSubtasks() {
+        super.deleteAllSubtasks();
         save();
     }
 }

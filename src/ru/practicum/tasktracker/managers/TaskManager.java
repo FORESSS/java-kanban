@@ -5,18 +5,15 @@ import ru.practicum.tasktracker.models.Subtask;
 import ru.practicum.tasktracker.models.Task;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 public interface TaskManager {
-    void createTask(Task task);
+    void addTask(Task task);
 
-    void createEpic(Task task);
+    void addEpic(Task task);
 
-    void createSubtask(Task task);
-
-    List<Task> getListOfAllTasks();
-
-    void deleteAllTasks();
+    void addSubtask(Task task);
 
     Optional<Task> getTask(int id);
 
@@ -36,9 +33,31 @@ public interface TaskManager {
 
     void deleteSubtask(Integer id);
 
-    List<Subtask> getListOfSubtasksByEpicId(int idOfEpic);
+    List<Task> getListOfAllTypesTasks();
+
+    List<Task> getAllTasks();
+
+    List<Epic> getAllEpics();
+
+    List<Subtask> getAllSubtasks();
+
+    void deleteAllTypesTasks();
+
+    void deleteAllTasks();
+
+    void deleteAllEpics();
+
+    void deleteAllSubtasks();
+
+    List<Subtask> getSubtasksByEpic(int idOfEpic);
 
     HistoryManager getHistoryManager();
 
     List<Task> getPrioritizedTasks();
+
+    Map<Integer, Task> getTasks();
+
+    Map<Integer, Epic> getEpics();
+
+    Map<Integer, Subtask> getSubtasks();
 }
