@@ -2,7 +2,9 @@ package ru.practicum.tasktracker.http;
 
 import org.junit.jupiter.api.Test;
 import ru.practicum.tasktracker.enums.Status;
+import ru.practicum.tasktracker.managers.TaskManager;
 import ru.practicum.tasktracker.models.Task;
+import ru.practicum.tasktracker.utils.Managers;
 
 import java.io.IOException;
 import java.net.URI;
@@ -13,7 +15,7 @@ import java.net.http.HttpResponse;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class TasksHandlerTest extends BasicHandlerTest {
-    @Test
+       @Test
     void testGetAllTasksSuccess() throws IOException, InterruptedException {
         HttpClient client = HttpClient.newHttpClient();
         HttpRequest request = HttpRequest.newBuilder()

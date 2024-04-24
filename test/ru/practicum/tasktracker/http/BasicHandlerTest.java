@@ -24,7 +24,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 public abstract class BasicHandlerTest {
     private final int PORT = 8080;
     protected final String BASE_URL = "http://localhost:" + PORT;
-    protected final TaskManager taskManager = Managers.loadFromFile(new File("src\\resources\\test.csv"));
+    protected TaskManager taskManager = Managers.loadFromFile(new File("src\\resources\\test.csv"));
     protected Gson gson = new GsonBuilder().serializeNulls()
             .setPrettyPrinting()
             .registerTypeHierarchyAdapter(Task.class, new TaskSerializer<>())

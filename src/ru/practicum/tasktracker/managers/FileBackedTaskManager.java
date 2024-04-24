@@ -61,7 +61,6 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
         FileBackedTaskManager fileBackedTaskManager = new FileBackedTaskManager(save);
 
         try (BufferedReader reader = new BufferedReader(new FileReader(save))) {
-            reader.readLine();
             reader.lines()
                     .map(FileBackedTaskManager::fromString)
                     .filter(Objects::nonNull)
@@ -87,7 +86,6 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
         }
 
         try (BufferedReader reader = new BufferedReader(new FileReader(HISTORY_SAVE))) {
-            reader.readLine();
             reader.lines()
                     .map(FileBackedTaskManager::fromString)
                     .filter(Objects::nonNull)
@@ -104,22 +102,24 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
 
     public static Task fromString(String value) {
         Task task = null;
-        String[] taskValues = value.split(",");
-        int id = Integer.parseInt(taskValues[0]);
-        String type = taskValues[1];
-        String name = taskValues[2];
-        String description = taskValues[4];
-        Status status = parseStatus(taskValues[3]);
-        LocalDateTime startTime = LocalDateTime.parse(taskValues[6], FORMATTER);
-        LocalDateTime endTime = LocalDateTime.parse(taskValues[7], FORMATTER);
-        Duration duration = Duration.ofMinutes(Integer.parseInt(taskValues[8]));
+        if (Character.isDigit(value.charAt(0))) {
+            String[] taskValues = value.split(",");
+            int id = Integer.parseInt(taskValues[0]);
+            String type = taskValues[1];
+            String name = taskValues[2];
+            String description = taskValues[4];
+            Status status = parseStatus(taskValues[3]);
+            LocalDateTime startTime = LocalDateTime.parse(taskValues[6], FORMATTER);
+            LocalDateTime endTime = LocalDateTime.parse(taskValues[7], FORMATTER);
+            Duration duration = Duration.ofMinutes(Integer.parseInt(taskValues[8]));
 
-        switch (type) {
-            case "Task" -> task = new Task(id, name, description, status, startTime, duration);
-            case "Epic" -> task = new Epic(id, name, description, status, startTime, endTime, duration);
-            case "Subtask" -> {
-                int epicId = Integer.parseInt(taskValues[5]);
-                task = new Subtask(id, name, description, status, startTime, duration, epicId);
+            switch (type) {
+                case "Task" -> task = new Task(id, name, description, status, startTime, duration);
+                case "Epic" -> task = new Epic(id, name, description, status, startTime, endTime, duration);
+                case "Subtask" -> {
+                    int epicId = Integer.parseInt(taskValues[5]);
+                    task = new Subtask(id, name, description, status, startTime, duration, epicId);
+                }
             }
         }
         return task;
