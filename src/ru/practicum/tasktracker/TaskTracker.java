@@ -1,7 +1,6 @@
 package ru.practicum.tasktracker;
 
 import ru.practicum.tasktracker.enums.Status;
-import ru.practicum.tasktracker.managers.FileBackedTaskManager;
 import ru.practicum.tasktracker.managers.TaskManager;
 import ru.practicum.tasktracker.models.Epic;
 import ru.practicum.tasktracker.models.Subtask;
@@ -14,7 +13,7 @@ import java.time.LocalDateTime;
 
 public class TaskTracker {
     public static void main(String[] args) {
-        FileBackedTaskManager manager = new FileBackedTaskManager(new File("resources\\data.csv"));
+        TaskManager manager = Managers.loadFromFile(new File("src\\resources\\data.csv"));
 
         Task task1 = new Task("123", "123", LocalDateTime.now().plusMinutes(120), Duration.ofMinutes(20));
         Task task2 = new Task(145, "456", "456", Status.NEW);
@@ -47,7 +46,7 @@ public class TaskTracker {
 
         System.out.println("***********************************************");
 
-        TaskManager fileBackedTaskManager = Managers.loadFromFile(new File("resources\\data.csv"));
+        TaskManager fileBackedTaskManager = Managers.loadFromFile(new File("src\\resources\\data.csv"));
 
         fileBackedTaskManager.updateSubtask(new Subtask(5, "4", "4", Status.DONE, LocalDateTime.now().minusYears(1), Duration.ofMinutes(4), 888));
 

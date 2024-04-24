@@ -14,7 +14,7 @@ public class HttpTaskServer {
     private static HttpServer httpServer;
 
     public static void main(String[] args) throws IOException {
-        TaskManager manager = Managers.loadFromFile(new File("resources\\data.csv"));
+        TaskManager manager = Managers.loadFromFile(new File("src\\resources\\data.csv"));
         startHttpTaskServer(manager);
         try {
             Thread.sleep(100000);

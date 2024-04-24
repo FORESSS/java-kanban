@@ -18,7 +18,7 @@ import java.util.stream.Collectors;
 
 public class FileBackedTaskManager extends InMemoryTaskManager {
     private final File dataSave;
-    private static final File HISTORY_SAVE = new File("resources\\history.csv");
+    private static final File HISTORY_SAVE = new File("src\\resources\\history.csv");
     private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("HH:mm dd.MM.yyyy");
 
     public FileBackedTaskManager(File dataSave) {
