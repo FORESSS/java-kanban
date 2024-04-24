@@ -68,8 +68,8 @@ public class Epic extends Task {
                 + getStatus() + ","
                 + getDescription() + ","
                 + "n/a" + ","
-                + getStartTime().format(FORMATTER) + ","
-                + getEndTime().format(FORMATTER) + ","
+                + getStartTime().format(formatter) + ","
+                + getEndTime().format(formatter) + ","
                 + getDuration().toMinutes();
     }
 }

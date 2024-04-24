@@ -18,7 +18,7 @@ import java.util.SortedMap;
 import java.util.TreeMap;
 
 public class TaskDeserializer implements JsonDeserializer<Task> {
-    private final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("HH:mm dd.MM.yyyy");
+    private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm dd.MM.yyyy");
     private final TaskManager taskManager = Managers.loadFromFile(new File("resources\\data.csv"));
 
     @Override
@@ -36,10 +36,10 @@ public class TaskDeserializer implements JsonDeserializer<Task> {
                 : Status.NEW;
 
         LocalDateTime startTime = jsonObject.has("startTime") ?
-                LocalDateTime.parse(jsonObject.get("startTime").getAsString(), FORMATTER) : LocalDateTime.MAX;
+                LocalDateTime.parse(jsonObject.get("startTime").getAsString(), formatter) : LocalDateTime.MAX;
 
         LocalDateTime endTime = jsonObject.has("endTime") ?
-                LocalDateTime.parse(jsonObject.get("endTime").getAsString(), FORMATTER) : LocalDateTime.MAX;
+                LocalDateTime.parse(jsonObject.get("endTime").getAsString(), formatter) : LocalDateTime.MAX;
 
         Duration duration = jsonObject.has("duration") ? Duration.ofMinutes(jsonObject.get("duration").getAsLong())
                 : Duration.ZERO;
