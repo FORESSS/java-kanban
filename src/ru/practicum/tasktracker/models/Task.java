@@ -17,7 +17,7 @@ public class Task {
     private Types type;
     private LocalDateTime startTime;
     private Duration duration;
-    protected final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm dd.MM.yyyy");
+    protected final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("HH:mm dd.MM.yyyy");
     protected final LocalDateTime defaultDateTime = LocalDateTime.MAX;
 
     public Task(String name, String description) {
@@ -133,8 +133,8 @@ public class Task {
                 + status + ","
                 + description + ","
                 + "n/a" + ","
-                + getStartTime().format(formatter) + ","
-                + getEndTime().format(formatter) + ","
+                + getStartTime().format(FORMATTER) + ","
+                + getEndTime().format(FORMATTER) + ","
                 + getDuration().toMinutes();
     }
 }
