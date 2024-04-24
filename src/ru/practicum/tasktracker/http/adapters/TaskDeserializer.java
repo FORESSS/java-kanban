@@ -19,7 +19,7 @@ import java.util.TreeMap;
 
 public class TaskDeserializer implements JsonDeserializer<Task> {
     private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm dd.MM.yyyy");
-    private final TaskManager taskManager = Managers.loadFromFile(new File("src\\resources\\data.csv"));
+    private final TaskManager taskManager = Managers.getDefault();
 
     @Override
     public Task deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
