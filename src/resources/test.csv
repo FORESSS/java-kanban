@@ -1,0 +1,4 @@
+id,type,name,status,description,epic,startTime,endTime,duration(minutes)
+11,Task,Task1,NEW,Task1,n/a,16:36 25.04.2025,17:36 25.04.2025,60
+12,Epic,Epic,NEW,Epic,n/a,16:36 25.04.2026,16:51 25.04.2026,15
+13,Subtask,,NEW,,12,16:36 25.04.2026,16:51 25.04.2026,15

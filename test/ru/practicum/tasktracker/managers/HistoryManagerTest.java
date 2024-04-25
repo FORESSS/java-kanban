@@ -13,26 +13,30 @@ import static org.junit.jupiter.api.Assertions.*;
 
 abstract class HistoryManagerTest {
     protected HistoryManager historyManager;
+    protected static Task task1;
+    protected static Task task2;
 
     protected abstract HistoryManager createHistoryManager();
 
     @BeforeEach
     void createManager() {
         historyManager = createHistoryManager();
+        task1 = new Task(123, "Task 1", "Description", Status.NEW,
+                LocalDateTime.of(2024, 4, 1, 9, 0), Duration.ofHours(2));
+        task2 = new Task(223, "Task 2", "Description", Status.NEW,
+                LocalDateTime.of(2024, 4, 1, 10, 0), Duration.ofHours(2));
+        historyManager.add(task1);
+        historyManager.add(task2);
     }
 
     @Test
     void testEmptyHistory() {
 
-        assertTrue(historyManager.getHistory().isEmpty());
+        assertFalse(historyManager.getHistory().isEmpty());
     }
 
     @Test
     void testAdd() {
-        Task task1 = new Task(1, "Task 1", "Description", Status.NEW, LocalDateTime.of(2024, 4, 1, 9, 0), Duration.ofHours(2));
-        Task task2 = new Task(2, "Task 2", "Description", Status.NEW, LocalDateTime.of(2024, 4, 1, 10, 0), Duration.ofHours(2));
-        historyManager.add(task1);
-        historyManager.add(task2);
         List<Task> history = historyManager.getHistory();
 
         assertEquals(2, history.size());
@@ -44,70 +48,63 @@ abstract class HistoryManagerTest {
 
     @Test
     void testDuplicateAdd() {
-        Task task1 = new Task(1, "Task 1", "Description", Status.NEW, LocalDateTime.of(2024, 4, 1, 9, 0), Duration.ofHours(2));
-        historyManager.add(task1);
         historyManager.add(task1);
         List<Task> history = historyManager.getHistory();
 
-        assertEquals(1, history.size());
+        assertEquals(2, history.size());
     }
 
     @Test
     void testUpdateHistory() {
-        Task task1 = new Task(1, "Task 1", "Description", Status.NEW, LocalDateTime.of(2024, 4, 1, 9, 0), Duration.ofHours(2));
-        historyManager.add(task1);
-        Task updatedTask = new Task(1, "Updated Task", "Updated Description", Status.DONE, LocalDateTime.of(2024, 4, 2, 10, 0), Duration.ofHours(3));
+        Task updatedTask = new Task(223, "Updated Task", "Updated Description", Status.DONE,
+                LocalDateTime.of(2024, 4, 2, 10, 0), Duration.ofHours(3));
         historyManager.updateHistory(updatedTask);
         List<Task> history = historyManager.getHistory();
 
-        assertEquals(1, history.size());
+        assertEquals(2, history.size());
 
         assertEquals(updatedTask, history.get(0));
     }
 
     @Test
     void testRemoveFromStart() {
-        Task task1 = new Task(1, "Task 1", "Description", Status.NEW, LocalDateTime.of(2024, 4, 1, 9, 0), Duration.ofHours(2));
-        Task task2 = new Task(2, "Task 2", "Description", Status.NEW, LocalDateTime.of(2024, 4, 1, 10, 0), Duration.ofHours(2));
-        historyManager.add(task1);
-        historyManager.add(task2);
-        historyManager.remove(task1.getId());
+        Task task3 = new Task("Task 3", "Description");
+        Task task4 = new Task("Task 4", "Description");
+        historyManager.add(task3);
+        historyManager.add(task4);
+        historyManager.remove(task3.getId());
         List<Task> history = historyManager.getHistory();
 
-        assertEquals(1, history.size());
+        assertEquals(3, history.size());
 
-        assertFalse(history.contains(task1));
+        assertFalse(history.contains(task3));
     }
 
     @Test
     void testRemoveFromMiddle() {
-        Task task1 = new Task(1, "Task 1", "Description", Status.NEW, LocalDateTime.of(2024, 4, 1, 9, 0), Duration.ofHours(2));
-        Task task2 = new Task(2, "Task 2", "Description", Status.NEW, LocalDateTime.of(2024, 4, 1, 10, 0), Duration.ofHours(2));
-        Task task3 = new Task(3, "Task 3", "Description", Status.NEW, LocalDateTime.of(2024, 4, 1, 11, 0), Duration.ofHours(2));
-        historyManager.add(task1);
-        historyManager.add(task2);
+        Task task3 = new Task("Task 3", "Description");
+        Task task4 = new Task("Task 4", "Description");
         historyManager.add(task3);
-        historyManager.remove(task2.getId());
+        historyManager.add(task4);
+        historyManager.remove(task3.getId());
         List<Task> history = historyManager.getHistory();
 
-        assertEquals(2, history.size());
+        assertEquals(3, history.size());
 
-        assertFalse(history.contains(task2));
+        assertFalse(history.contains(task3));
     }
 
     @Test
     void testRemoveFromEnd() {
-        Task task1 = new Task(1, "Task 1", "Description", Status.NEW, LocalDateTime.of(2024, 4, 1, 9, 0), Duration.ofHours(2));
-        Task task2 = new Task(2, "Task 2", "Description", Status.NEW, LocalDateTime.of(2024, 4, 1, 10, 0), Duration.ofHours(2));
-        Task task3 = new Task(3, "Task 3", "Description", Status.NEW, LocalDateTime.of(2024, 4, 1, 11, 0), Duration.ofHours(2));
-        historyManager.add(task1);
-        historyManager.add(task2);
+        Task task3 = new Task("Task 3", "Description");
+        Task task4 = new Task("Task 4", "Description");
         historyManager.add(task3);
-        historyManager.remove(task3.getId());
+        historyManager.add(task4);
+        historyManager.remove(task4.getId());
         List<Task> history = historyManager.getHistory();
 
-        assertEquals(2, history.size());
+        assertEquals(3, history.size());
 
-        assertFalse(history.contains(task3));
+        assertFalse(history.contains(task4));
     }
 }
