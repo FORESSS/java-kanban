@@ -112,9 +112,15 @@ public class EpicsHandler extends BasicHandler implements HttpHandler {
         String response;
         try {
             int id = Integer.parseInt(query.substring(3));
-            taskManager.deleteEpic(id);
-            responseCode = 200;
-            response = "Эпик c id: " + id + " удален";
+            Optional<Task> optionalEpic = taskManager.getEpic(id);
+            if (optionalEpic.isEmpty()) {
+                responseCode = 404;
+                response = "Эпик c id: " + id + " не существует";
+            } else {
+                taskManager.deleteEpic(id);
+                responseCode = 200;
+                response = "Эпик c id: " + id + " удален";
+            }
         } catch (NumberFormatException | StringIndexOutOfBoundsException exception) {
             responseCode = 404;
             response = "Неправильный id эпика";

@@ -57,7 +57,7 @@ public class InMemoryTaskManager implements TaskManager {
     @Override
     public void addTask(Task task) {
         if (task != null && isKeyNotContainsInMaps(task.getId())) {
-            getPrioritizedTasks().forEach(t -> checkTasksIntersectionDuration(t, task));
+            checkTaskIntersectionDuration(task);
             tasks.put(task.getId(), task);
             prioritizedTasks.add(task);
         }
@@ -78,7 +78,7 @@ public class InMemoryTaskManager implements TaskManager {
                 int epicId = tmpMap.lastKey();
                 Subtask subtask = (Subtask) task;
                 Epic epic = epics.get(epicId);
-                getPrioritizedTasks().forEach(t -> checkTasksIntersectionDuration(t, subtask));
+                checkSubtaskIntersectionDuration(subtask);
                 subtask.setEpicId(epicId);
                 subtasks.put(subtask.getId(), subtask);
                 epic.getSubtasksId().add(subtask.getId());
@@ -111,43 +111,36 @@ public class InMemoryTaskManager implements TaskManager {
 
     @Override
     public void updateTask(Task newTask) {
-        if (tasks.get(newTask.getId()) == null) {
-            return;
+        if (tasks.containsKey(newTask.getId())) {
+            checkTaskIntersectionDuration(newTask);
+            tasks.put(newTask.getId(), newTask);
+            historyManager.updateHistory(newTask);
+            prioritizedTasks.remove(newTask);
+            prioritizedTasks.add(newTask);
         }
-        getPrioritizedTasks().stream()
-                .filter(t -> !t.equals(newTask))
-                .forEach(t -> checkTasksIntersectionDuration(t, newTask));
-        tasks.put(newTask.getId(), newTask);
-        historyManager.updateHistory(newTask);
-        prioritizedTasks.remove(tasks.get(newTask.getId()));
-        prioritizedTasks.add(newTask);
     }
 
     @Override
     public void updateEpic(Epic newTask) {
-        if (epics.get(newTask.getId()) == null) {
-            return;
+        if (epics.containsKey(newTask.getId())) {
+            epics.put(newTask.getId(), newTask);
+            historyManager.updateHistory(newTask);
         }
-        epics.put(newTask.getId(), newTask);
-        historyManager.updateHistory(newTask);
     }
 
     @Override
     public void updateSubtask(Subtask newTask) {
-        if (subtasks.get(newTask.getId()) == null) {
-            return;
+        if (subtasks.containsKey(newTask.getId())) {
+            Subtask subtask = subtasks.get(newTask.getId());
+            checkSubtaskIntersectionDuration(newTask);
+            newTask.setEpicId(subtask.getEpicId());
+            subtasks.put(newTask.getId(), newTask);
+            updateEpicParameters(epics.get(newTask.getEpicId()));
+            historyManager.updateHistory(newTask);
+            historyManager.updateHistory(epics.get(newTask.getEpicId()));
+            prioritizedTasks.remove(subtask);
+            prioritizedTasks.add(newTask);
         }
-        Subtask subtask = subtasks.get(newTask.getId());
-        getPrioritizedTasks().stream()
-                .filter(t -> !t.equals(newTask))
-                .forEach(t -> checkTasksIntersectionDuration(t, newTask));
-        newTask.setEpicId(subtask.getEpicId());
-        subtasks.put(newTask.getId(), newTask);
-        updateEpicParameters(epics.get(newTask.getEpicId()));
-        historyManager.updateHistory(newTask);
-        historyManager.updateHistory(epics.get(newTask.getEpicId()));
-        prioritizedTasks.remove(subtask);
-        prioritizedTasks.add(newTask);
     }
 
     @Override
@@ -302,6 +295,14 @@ public class InMemoryTaskManager implements TaskManager {
             updateEpicDuration(epic);
             updateEpicEndTime(epic);
         }
+    }
+
+    private void checkTaskIntersectionDuration(Task task) {
+        getPrioritizedTasks().forEach(t -> checkTasksIntersectionDuration(t, task));
+    }
+
+    private void checkSubtaskIntersectionDuration(Subtask subtask) {
+        getPrioritizedTasks().forEach(task -> checkTasksIntersectionDuration(task, subtask));
     }
 
     private void checkTasksIntersectionDuration(Task task1, Task task2) {

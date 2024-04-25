@@ -1,6 +1,7 @@
 package ru.practicum.tasktracker;
 
 import ru.practicum.tasktracker.enums.Status;
+import ru.practicum.tasktracker.managers.FileBackedTaskManager;
 import ru.practicum.tasktracker.managers.TaskManager;
 import ru.practicum.tasktracker.models.Epic;
 import ru.practicum.tasktracker.models.Subtask;
@@ -13,7 +14,7 @@ import java.time.LocalDateTime;
 
 public class TaskTracker {
     public static void main(String[] args) {
-        TaskManager manager = Managers.loadFromFile(new File("src\\resources\\data.csv"));
+        TaskManager manager = new FileBackedTaskManager(new File("src\\resources\\data.csv"));
 
         Task task1 = new Task("123", "123", LocalDateTime.now().plusMinutes(120), Duration.ofMinutes(20));
         Task task2 = new Task(145, "456", "456", Status.NEW);
@@ -37,8 +38,8 @@ public class TaskTracker {
         manager.getSubtask(5);
         manager.getTask(145);
 
-        manager.updateSubtask(new Subtask(4, "4", "4", Status.DONE, LocalDateTime.now(), Duration.ofMinutes(4), 888));
-        manager.updateSubtask(new Subtask(6, "6", "6", Status.DONE, LocalDateTime.now().minusMinutes(250), Duration.ofMinutes(7), 888));
+        manager.updateSubtask(new Subtask(4, "4", "4", Status.DONE, LocalDateTime.now().minusYears(2), Duration.ofMinutes(4), 888));
+        manager.updateSubtask(new Subtask(6, "6", "6", Status.DONE, LocalDateTime.now().minusMinutes(2500), Duration.ofMinutes(7), 888));
 
         System.out.println(manager.getListOfAllTypesTasks());
         System.out.println(manager.getHistoryManager().getHistory());
@@ -48,7 +49,7 @@ public class TaskTracker {
 
         TaskManager fileBackedTaskManager = Managers.loadFromFile(new File("src\\resources\\data.csv"));
 
-        fileBackedTaskManager.updateSubtask(new Subtask(5, "4", "4", Status.DONE, LocalDateTime.now().minusYears(1), Duration.ofMinutes(4), 888));
+        fileBackedTaskManager.updateSubtask(new Subtask(5, "4", "4", Status.DONE, LocalDateTime.now().minusYears(3), Duration.ofMinutes(4), 888));
 
         System.out.println(fileBackedTaskManager.getListOfAllTypesTasks());
         System.out.println(fileBackedTaskManager.getHistoryManager().getHistory());

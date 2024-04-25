@@ -100,6 +100,7 @@ public class SubtasksHandler extends BasicHandler implements HttpHandler {
             responseCode = 500;
             response = "Ошибка сохранения данных менеджера в файл";
         }
+        System.out.println(responseCode);
         sendResponse(httpExchange, responseCode, response);
     }
 
@@ -108,10 +109,15 @@ public class SubtasksHandler extends BasicHandler implements HttpHandler {
         String response;
         try {
             int id = Integer.parseInt(query.substring(3));
-            taskManager.deleteSubtask(id);
-            responseCode = 200;
-            response = "Подзадача c id: " + id + " удалена";
-        } catch (NumberFormatException | StringIndexOutOfBoundsException exception) {
+            if (taskManager.getSubtask(id).isEmpty()) {
+                responseCode = 404;
+                response = "Подзадача c id: " + id + " не существует";
+            } else {
+                taskManager.deleteSubtask(id);
+                responseCode = 200;
+                response = "Подзадача c id: " + id + " удалена";
+            }
+        } catch (NumberFormatException exception) {
             responseCode = 404;
             response = "Неправильный id подзадачи";
         }

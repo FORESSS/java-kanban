@@ -107,9 +107,14 @@ public class TasksHandler extends BasicHandler implements HttpHandler {
         String response;
         try {
             int id = Integer.parseInt(query.substring(3));
-            taskManager.deleteTask(id);
-            responseCode = 200;
-            response = "Задача c id: " + id + " удалена";
+            if (taskManager.getTask(id).isEmpty()) {
+                responseCode = 404;
+                response = "Задача c id: " + id + " не существует";
+            } else {
+                taskManager.deleteTask(id);
+                responseCode = 200;
+                response = "Задача c id: " + id + " удалена";
+            }
         } catch (NumberFormatException exception) {
             responseCode = 404;
             response = "Неправильный id задачи";
