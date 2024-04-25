@@ -1,23 +1,24 @@
 package ru.practicum.tasktracker.models;
+
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import ru.practicum.tasktracker.enums.Status;
 import ru.practicum.tasktracker.managers.TaskManager;
 import ru.practicum.tasktracker.utils.Managers;
+
 import static org.junit.jupiter.api.Assertions.*;
+
 public class EpicTest {
     private static TaskManager manager;
     private static Task epic;
-    private static Task subtask1;
-    private static Task subtask2;
-    private static Task subtask3;
+
     @BeforeAll
     public static void createNewTasks() {
         manager = Managers.getDefault();
         epic = new Epic(111, "111", "111", Status.NEW);
-        subtask1 = new Subtask(112, "112", "112", Status.NEW);
-        subtask2 = new Subtask(113, "112", "112", Status.NEW);
-        subtask3 = new Subtask(114, "112", "112", Status.NEW);
+        Task subtask1 = new Subtask(112, "112", "112", Status.NEW);
+        Task subtask2 = new Subtask(113, "112", "112", Status.NEW);
+        Task subtask3 = new Subtask(114, "112", "112", Status.NEW);
         manager.addEpic(epic);
         manager.addSubtask(subtask1);
         manager.addSubtask(subtask2);
